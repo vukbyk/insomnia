@@ -21,60 +21,52 @@ Object3D::Object3D(btTransform argT)
 
 void Object3D::render()
 {
-//	glMatrixMode(GL_MODELVIEW);
-//	glPopMatrix();
-//	glPushMatrix();
-//		glLoadIdentity();
-		float glmat[16];
-		t.setOrigin(btVector3(-1,1,-3));
-		t.getOpenGLMatrix(glmat);
-//		glMultMatrixf(glmat);
-		glLoadMatrixf(glmat);
-//		glColor3f(1.0f,0.0f,0.0f);
-	   glBegin(GL_QUADS);                // Begin drawing the color cube with 6 quads
-		  // Top face (y = 1.0f)
-		  // Define vertices in counter-clockwise (CCW) order with normal pointing out
-		  glColor3f(0.0f, 1.0f, 0.0f);     // Green
-		  glVertex3f( 1.0f, 1.0f, -1.0f);
-		  glVertex3f(-1.0f, 1.0f, -1.0f);
-		  glVertex3f(-1.0f, 1.0f,  1.0f);
-		  glVertex3f( 1.0f, 1.0f,  1.0f);
+	setM();
+	glMultMatrixf(getM());
+		glBegin(GL_QUADS);                // Begin drawing the color cube with 6 quads
+		// Top face (y = 1.0f)
+		// Define vertices in counter-clockwise (CCW) order with normal pointing out
+		glColor3f(0.0f, 1.0f, 0.0f);     // Green
+		glVertex3f( 1.0f, 1.0f, -1.0f);
+		glVertex3f(-1.0f, 1.0f, -1.0f);
+		glVertex3f(-1.0f, 1.0f,  1.0f);
+		glVertex3f( 1.0f, 1.0f,  1.0f);
 
-		  // Bottom face (y = -1.0f)
-		  glColor3f(1.0f, 0.5f, 0.0f);     // Orange
-		  glVertex3f( 1.0f, -1.0f,  1.0f);
-		  glVertex3f(-1.0f, -1.0f,  1.0f);
-		  glVertex3f(-1.0f, -1.0f, -1.0f);
-		  glVertex3f( 1.0f, -1.0f, -1.0f);
+		// Bottom face (y = -1.0f)
+		glColor3f(1.0f, 0.5f, 0.0f);     // Orange
+		glVertex3f( 1.0f, -1.0f,  1.0f);
+		glVertex3f(-1.0f, -1.0f,  1.0f);
+		glVertex3f(-1.0f, -1.0f, -1.0f);
+		glVertex3f( 1.0f, -1.0f, -1.0f);
 
-		  // Front face  (z = 1.0f)
-		  glColor3f(1.0f, 0.0f, 0.0f);     // Red
-		  glVertex3f( 1.0f,  1.0f, 1.0f);
-		  glVertex3f(-1.0f,  1.0f, 1.0f);
-		  glVertex3f(-1.0f, -1.0f, 1.0f);
-		  glVertex3f( 1.0f, -1.0f, 1.0f);
+		// Front face  (z = 1.0f)
+		glColor3f(1.0f, 0.0f, 0.0f);     // Red
+		glVertex3f( 1.0f,  1.0f, 1.0f);
+		glVertex3f(-1.0f,  1.0f, 1.0f);
+		glVertex3f(-1.0f, -1.0f, 1.0f);
+		glVertex3f( 1.0f, -1.0f, 1.0f);
 
-		  // Back face (z = -1.0f)
-		  glColor3f(1.0f, 1.0f, 0.0f);     // Yellow
-		  glVertex3f( 1.0f, -1.0f, -1.0f);
-		  glVertex3f(-1.0f, -1.0f, -1.0f);
-		  glVertex3f(-1.0f,  1.0f, -1.0f);
-		  glVertex3f( 1.0f,  1.0f, -1.0f);
+		// Back face (z = -1.0f)
+		glColor3f(1.0f, 1.0f, 0.0f);     // Yellow
+		glVertex3f( 1.0f, -1.0f, -1.0f);
+		glVertex3f(-1.0f, -1.0f, -1.0f);
+		glVertex3f(-1.0f,  1.0f, -1.0f);
+		glVertex3f( 1.0f,  1.0f, -1.0f);
 
-		  // Left face (x = -1.0f)
-		  glColor3f(0.0f, 0.0f, 1.0f);     // Blue
-		  glVertex3f(-1.0f,  1.0f,  1.0f);
-		  glVertex3f(-1.0f,  1.0f, -1.0f);
-		  glVertex3f(-1.0f, -1.0f, -1.0f);
-		  glVertex3f(-1.0f, -1.0f,  1.0f);
+		// Left face (x = -1.0f)
+		glColor3f(0.0f, 0.0f, 1.0f);     // Blue
+		glVertex3f(-1.0f,  1.0f,  1.0f);
+		glVertex3f(-1.0f,  1.0f, -1.0f);
+		glVertex3f(-1.0f, -1.0f, -1.0f);
+		glVertex3f(-1.0f, -1.0f,  1.0f);
 
-		  // Right face (x = 1.0f)
-		  glColor3f(1.0f, 0.0f, 1.0f);     // Magenta
-		  glVertex3f(1.0f,  1.0f, -1.0f);
-		  glVertex3f(1.0f,  1.0f,  1.0f);
-		  glVertex3f(1.0f, -1.0f,  1.0f);
-		  glVertex3f(1.0f, -1.0f, -1.0f);
-	   glEnd();
+		// Right face (x = 1.0f)
+		glColor3f(1.0f, 0.0f, 1.0f);     // Magenta
+		glVertex3f(1.0f,  1.0f, -1.0f);
+		glVertex3f(1.0f,  1.0f,  1.0f);
+		glVertex3f(1.0f, -1.0f,  1.0f);
+		glVertex3f(1.0f, -1.0f, -1.0f);
+   glEnd();
 
 //			glColor3f(0.5, 0.0 ,0);
 //			glutSolidCube(.5);
@@ -96,9 +88,17 @@ void Object3D::render()
 //			glutSolidCube(.5);
 //			glTranslated(-1, 0, -1);
 //			glutSolidCube(.5);
-//	 glPopMatrix();
+   glPopMatrix();
+}
 
+void Object3D::update()
+{
+	setM();
+}
 
+void Object3D::setM()
+{
+	t.getOpenGLMatrix(m);
 }
 
 Object3D::~Object3D()

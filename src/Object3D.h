@@ -14,13 +14,22 @@
 
 class Object3D
 {
+private:
+	float m[16];
 public:
 	btTransform t;
 public:
 	Object3D();
     Object3D(btTransform argT);
+//    void init();
+    void update();
     virtual void render();
 	virtual ~Object3D();
+	virtual void setM();
+	const float* getM() const
+	{
+		return m;
+	}
 };
 
 #endif /* OBJECT3D_H_ */

@@ -17,6 +17,8 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
+#include <vector>
+#include <memory>
 
 #include <btBulletDynamicsCommon.h>
 
@@ -56,10 +58,18 @@ SDL_Window* glWindow = NULL;
 //OpenGL context
 SDL_GLContext gContext;
 
-Object3D cube;
+//Object3D cube;
+
+typedef std::shared_ptr <Object3D> ObjectPtr;
+typedef std::vector <ObjectPtr> Objects;
+Objects objects;
 
 int init()
 {
+//	Object o=(new Object3D());
+//	shared_ptr <Object3D> o;
+
+	objects.push_back(ObjectPtr(new Object3D()));
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
@@ -186,56 +196,60 @@ void render()
 //	camera.setRotation(btQuaternion(30*SIMD_PI/180, 0, 0));
 	float cmat[16];
 	camera.getOpenGLMatrix(cmat);
+
+//	    gluLookAt (0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
     //Clear color buffer
 	glDepthMask (true);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-//	gluLookAt (0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt (0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 //    glPushMatrix();
     glPushMatrix();
-	    cube.render();
+//	    cube.render();
+    	objects[0]->render();
 	glPopMatrix();
-	camera.setOrigin(btVector3(5,10,0));
-	camera.getOpenGLMatrix(cmat);
-	glLoadMatrixf(cmat);
+//	camera.setOrigin(btVector3(15,10,0));
+//	camera.getOpenGLMatrix(cmat);
+//	glLoadMatrixf(cmat);
 
-//    glPushMatrix();
-//		glColor3f(.8,.8,.8);
-//		float span=10;
-//		glLineWidth(3);
-//		glBegin(GL_LINES);
-//			glNormal3f(0,1,0);
-//			glVertex3f(-span, 0, 0);
-//			glVertex3f(span, 0, 0);
-//			glVertex3f(0, 0,-span);
-//			glVertex3f(0, 0,span);
-//
-//			glVertex3f(-span, 0, span);
-//			glVertex3f(span, 0, span);
-//			glVertex3f(-span, 0, -span);
-//			glVertex3f(span, 0, -span);
-//			glVertex3f(-span, 0, -span);
-//			glVertex3f(-span, 0, span);
-//			glVertex3f(span, 0, -span);
-//			glVertex3f(span, 0, span);
-//		glEnd();
-//		glLineWidth(1);
-//
-//		glBegin(GL_LINES);
-//			for(int i=1; i<span; i++)
-//			{
-//				glVertex3f(-span, 0, i);
-//				glVertex3f(span, 0, i);
-//				glVertex3f(-span, 0, -i);
-//				glVertex3f(span, 0, -i);
-//				glVertex3f(i, 0, -span);
-//				glVertex3f(i, 0, span);
-//				glVertex3f(-i, 0, -span);
-//				glVertex3f(-i, 0, span);
-//			}
-//		glEnd();
-//	glPopMatrix();
+    glPushMatrix();
+		glColor3f(.8,.8,.8);
+		float span=10;
+		glLineWidth(3);
+		glBegin(GL_LINES);
+			glNormal3f(0,1,0);
+			glVertex3f(-span, 0, 0);
+			glVertex3f(span, 0, 0);
+			glVertex3f(0, 0,-span);
+			glVertex3f(0, 0,span);
+
+			glVertex3f(-span, 0, span);
+			glVertex3f(span, 0, span);
+			glVertex3f(-span, 0, -span);
+			glVertex3f(span, 0, -span);
+			glVertex3f(-span, 0, -span);
+			glVertex3f(-span, 0, span);
+			glVertex3f(span, 0, -span);
+			glVertex3f(span, 0, span);
+		glEnd();
+		glLineWidth(1);
+
+		glBegin(GL_LINES);
+			for(int i=1; i<span; i++)
+			{
+				glVertex3f(-span, 0, i);
+				glVertex3f(span, 0, i);
+				glVertex3f(-span, 0, -i);
+				glVertex3f(span, 0, -i);
+				glVertex3f(i, 0, -span);
+				glVertex3f(i, 0, span);
+				glVertex3f(-i, 0, -span);
+				glVertex3f(-i, 0, span);
+			}
+		glEnd();
+	glPopMatrix();
 
     glPushMatrix();
     	glRotatef(r,0.0f,1.0f,0.0f);    // Rotate The cube around the Y axis
