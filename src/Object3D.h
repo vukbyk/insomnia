@@ -16,8 +16,10 @@ class Object3D
 {
 private:
 	float m[16];
+
 public:
 	btTransform t;
+
 public:
 	Object3D();
     Object3D(btTransform argT);
@@ -28,6 +30,11 @@ public:
 	virtual void setM();
 	const float* getM() const
 	{
+		return m;
+	}
+	const float* mt()
+	{
+		t.getOpenGLMatrix(m);
 		return m;
 	}
 };

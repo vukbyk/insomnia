@@ -15,12 +15,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
 
 #include <vector>
 #include <memory>
 
-#include <btBulletDynamicsCommon.h>
+//#include <btBulletDynamicsCommon.h>
 
 #include "Object3D.h"
 
@@ -276,7 +276,7 @@ void close()
 
 int main( int argc, char* args[] )
 {
-	glutInit(&argc, args);
+//	glutInit(&argc, args);
     //Start up SDL and create window
     if( !init() )
     {
@@ -286,36 +286,28 @@ int main( int argc, char* args[] )
     }
 
 	//Event handler
-	SDL_Event e;
-	//Enable text input
-	SDL_StartTextInput();
+	SDL_Event event;
+	bool keysHeld[323] = {false};
 
 	//While application is running
 	while( !quit )
 	{
 		//Handle events on queue
-		while( SDL_PollEvent( &e ) != 0 )
+		while( SDL_PollEvent( &event ))
 		{
 			//User requests quit
-			if( e.type == SDL_QUIT )
+			if( event.type == SDL_QUIT )
 			{
 				quit = true;
+				break;
 			}
-			//Handle keypress with current mouse position
-			else if( e.type == SDL_TEXTINPUT )
+			if( event.type == SDL_WINDOWEVENT) // The window is resized
 			{
-				int x = 0, y = 0;
-				SDL_GetMouseState( &x, &y );
-				handleKeys( e.text.text[ 0 ], x, y );
-			}
-
-			else if( e.type == SDL_WINDOWEVENT) // The window is resized
-			{
-				if(e.window.event == SDL_WINDOWEVENT_RESIZED)
+				if(event.window.event == SDL_WINDOWEVENT_RESIZED)
 				{
 
-					screenWidth  = e.window.data1;
-					screenHeight = e.window.data2;
+					screenWidth  = event.window.data1;
+					screenHeight = event.window.data2;
 
 					glMatrixMode( GL_PROJECTION );
 					glViewport(0, 0, screenWidth, screenHeight);
@@ -325,8 +317,23 @@ int main( int argc, char* args[] )
 					glMatrixMode( GL_MODELVIEW );
 				}
 			}
+			if (event.type == SDL_KEYDOWN)
+			{
+				keysHeld[event.key.keysym.scancode] = true;
+			}
+			if (event.type == SDL_KEYUP)
+			{
+				keysHeld[event.key.keysym.scancode] = false;
+			}
 		}
-
+		if ( keysHeld[SDL_SCANCODE_DOWN] )
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
+		if ( keysHeld[SDL_SCANCODE_UP] )
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
+		if ( keysHeld[SDL_SCANCODE_LEFT] )
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, 0, -1*SIMD_RADS_PER_DEG));
+		if ( keysHeld[SDL_SCANCODE_RIGHT] )
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, 0,  1*SIMD_RADS_PER_DEG));
 		//Render quad
 		render();
 
