@@ -6,7 +6,6 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,9 +19,12 @@
 #include <vector>
 #include <memory>
 
-//#include <btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 #include "Object3D.h"
+#include "Camera.h"
+#include "WirePlane.h"
+#include "Cube.h"
 
 #include <iostream>
 using namespace std;
@@ -33,32 +35,20 @@ int screenHeight = 760;
 
 //Main loop flag
 bool quit = false;
-
 //Starts up SDL, creates window, and initializes OpenGL
 int init();
-
 //Initializes matrices and clear color
 int initGL();
-
-//Input handler
-void handleKeys( unsigned char key, int x, int y );
-
 //Per frame update
 void update();
-
 //Renders quad to the screen
 void render();
-
 //Frees media and shuts down SDL
 void close();
-
 //The window we'll be rendering to
 SDL_Window* glWindow = NULL;
-
 //OpenGL context
 SDL_GLContext gContext;
-
-//Object3D cube;
 
 typedef std::shared_ptr <Object3D> ObjectPtr;
 typedef std::vector <ObjectPtr> Objects;
@@ -66,21 +56,20 @@ Objects objects;
 
 int init()
 {
-//	Object o=(new Object3D());
-//	shared_ptr <Object3D> o;
-
-	objects.push_back(ObjectPtr(new Object3D()));
+	objects.push_back(ObjectPtr(new Camera()));
+	objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 2, 0));
+	objects.push_back(ObjectPtr(new Cube()));
+	objects.push_back(ObjectPtr(new Cube()));
+	objects.push_back(ObjectPtr(new WirePlane()));
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         return EXIT_FAILURE;
     }
-
 	//Use OpenGL 2.1
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
-
 	//Create window
 	glWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 			screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE /*| SDL_WINDOW_SHOWN*/ );
@@ -89,7 +78,6 @@ int init()
 		printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
 	       return EXIT_FAILURE;
 	}
-
 	//Create context
 	gContext = SDL_GL_CreateContext( glWindow );
 	if( gContext == NULL )
@@ -97,13 +85,11 @@ int init()
 		printf( "OpenGL context could not be created! SDL Error: %s\n", SDL_GetError() );
 	       return EXIT_FAILURE;
 	}
-
 	//Use Vsync
 	if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 	{
 		printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
 	}
-
 	//Initialize OpenGL
 	if( !initGL() )
 	{
@@ -127,10 +113,9 @@ int initGL()
 
     glEnable(GL_DEPTH_TEST);
     //Initialize Projection Matrix
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,500.0);
-
+//    glMatrixMode( GL_PROJECTION );
+//    glLoadIdentity();
+//    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,500.0);
     //Check for error
     error = glGetError();
     if( error != GL_NO_ERROR )
@@ -138,12 +123,10 @@ int initGL()
     	printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
     	return EXIT_FAILURE;
     }
-
     //Initialize Modelview Matrix
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-    gluLookAt (0.0f, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-
+//    gluLookAt (0.0f, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     //Check for error
     error = glGetError();
     if( error != GL_NO_ERROR )
@@ -151,10 +134,8 @@ int initGL()
     	printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
     	return EXIT_FAILURE;
     }
-
     //Initialize clear color
     glClearColor( 0.2f, 0.2f, 0.2f, 1.f );
-
     //Check for error
     error = glGetError();
     if( error != GL_NO_ERROR )
@@ -162,107 +143,29 @@ int initGL()
     	printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
         return EXIT_FAILURE;
     }
-
     return EXIT_SUCCESS;
-}
-
-
-void handleKeys( unsigned char key, int x, int y )
-{
-    if( key == 'q' )
-    {
-        quit = true;
-    }
-    if ( key == 'z')
-    {
-//    	cube.t.setRotation();
-    }
 }
 
 void update()
 {
-    //No per frame update needed
+    for(auto &obj: objects)
+    {
+      obj->update();
+    }
 }
-
-float r=0;
 
 void render()
 {
-	btTransform camera;
-	camera.setIdentity();
-	camera.setOrigin(btVector3(1.1,1.1,6));
-	camera=camera.inverse();
-	camera.setRotation(btQuaternion(0, 30*SIMD_PI/180, 0));
-//	camera.setRotation(btQuaternion(30*SIMD_PI/180, 0, 0));
-	float cmat[16];
-	camera.getOpenGLMatrix(cmat);
-
-//	    gluLookAt (0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-    //Clear color buffer
 	glDepthMask (true);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-	gluLookAt (0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-//    glPushMatrix();
-    glPushMatrix();
-//	    cube.render();
-    	objects[0]->render();
-	glPopMatrix();
-//	camera.setOrigin(btVector3(15,10,0));
-//	camera.getOpenGLMatrix(cmat);
-//	glLoadMatrixf(cmat);
-
-    glPushMatrix();
-		glColor3f(.8,.8,.8);
-		float span=10;
-		glLineWidth(3);
-		glBegin(GL_LINES);
-			glNormal3f(0,1,0);
-			glVertex3f(-span, 0, 0);
-			glVertex3f(span, 0, 0);
-			glVertex3f(0, 0,-span);
-			glVertex3f(0, 0,span);
-
-			glVertex3f(-span, 0, span);
-			glVertex3f(span, 0, span);
-			glVertex3f(-span, 0, -span);
-			glVertex3f(span, 0, -span);
-			glVertex3f(-span, 0, -span);
-			glVertex3f(-span, 0, span);
-			glVertex3f(span, 0, -span);
-			glVertex3f(span, 0, span);
-		glEnd();
-		glLineWidth(1);
-
-		glBegin(GL_LINES);
-			for(int i=1; i<span; i++)
-			{
-				glVertex3f(-span, 0, i);
-				glVertex3f(span, 0, i);
-				glVertex3f(-span, 0, -i);
-				glVertex3f(span, 0, -i);
-				glVertex3f(i, 0, -span);
-				glVertex3f(i, 0, span);
-				glVertex3f(-i, 0, -span);
-				glVertex3f(-i, 0, span);
-			}
-		glEnd();
-	glPopMatrix();
-
-    glPushMatrix();
-    	glRotatef(r,0.0f,1.0f,0.0f);    // Rotate The cube around the Y axis
-		r+=1;
-		glColor3f(0.0f,1.0f,0.0f);
-		glBegin( GL_QUADS );
-			glVertex3f( -0.5f, -0.5f, .5f );
-			glVertex3f(  0.5f, -0.5f, .5f );
-			glVertex3f(  0.5f,  0.5f, .5f );
-			glVertex3f( -0.5f,  0.5f, .5f );
-		glEnd();
-	glPopMatrix();
-
+    float pos[]= {2, 2, 3, 1};
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    for(auto &obj: objects)
+    {
+      obj->render();
+    }
 }
 
 void close()
@@ -284,7 +187,6 @@ int main( int argc, char* args[] )
         close();
         return EXIT_FAILURE;
     }
-
 	//Event handler
 	SDL_Event event;
 	bool keysHeld[323] = {false};
@@ -305,7 +207,6 @@ int main( int argc, char* args[] )
 			{
 				if(event.window.event == SDL_WINDOWEVENT_RESIZED)
 				{
-
 					screenWidth  = event.window.data1;
 					screenHeight = event.window.data2;
 
@@ -327,24 +228,47 @@ int main( int argc, char* args[] )
 			}
 		}
 		if ( keysHeld[SDL_SCANCODE_DOWN] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
-		if ( keysHeld[SDL_SCANCODE_UP] )
 			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
+		if ( keysHeld[SDL_SCANCODE_UP] )
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
 		if ( keysHeld[SDL_SCANCODE_LEFT] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, 0, -1*SIMD_RADS_PER_DEG));
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_RIGHT] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, 0,  1*SIMD_RADS_PER_DEG));
+			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_W] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 0,-0.1));
+		if ( keysHeld[SDL_SCANCODE_S] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 0, 0.1));
+		if ( keysHeld[SDL_SCANCODE_A] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(-.1, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_D] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0.1, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_E] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,0.1, 0));
+		if ( keysHeld[SDL_SCANCODE_Q] )
+			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,-.1, 0));
+		if ( keysHeld[SDL_SCANCODE_T] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0, -0.1));
+		if ( keysHeld[SDL_SCANCODE_G] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0, 0.1));
+		if ( keysHeld[SDL_SCANCODE_F] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(-.1, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_H] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0.1, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_Y] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, -.1, 0));
+		if ( keysHeld[SDL_SCANCODE_R] )
+			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0.1, 0));
+		//Prepare
+		update();
 		//Render quad
 		render();
-
 		//Update screen
 		SDL_GL_SwapWindow( glWindow );
 	}
 	//Disable text input
 	SDL_StopTextInput();
-
     //Free resources and close SDL
     close();
-
     return EXIT_SUCCESS;
 }

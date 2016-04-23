@@ -11,32 +11,21 @@
 #include <GL/gl.h>
 #include <bullet/LinearMath/btTransform.h>
 
-
 class Object3D
 {
-private:
+protected:
 	float m[16];
-
 public:
 	btTransform t;
-
 public:
 	Object3D();
     Object3D(btTransform argT);
-//    void init();
-    void update();
+    virtual void init(){};
+    virtual void update();
     virtual void render();
 	virtual ~Object3D();
 	virtual void setM();
-	const float* getM() const
-	{
-		return m;
-	}
-	const float* mt()
-	{
-		t.getOpenGLMatrix(m);
-		return m;
-	}
+	virtual const float* getM() const { return m;}
+	virtual const float* mt() { t.getOpenGLMatrix(m); return m; }
 };
-
 #endif /* OBJECT3D_H_ */
