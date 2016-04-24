@@ -53,14 +53,17 @@ SDL_GLContext gContext;
 typedef std::shared_ptr <Object3D> ObjectPtr;
 typedef std::vector <ObjectPtr> Objects;
 Objects objects;
+ObjectPtr controls;
 
 int init()
 {
 	objects.push_back(ObjectPtr(new Camera()));
-	objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 2, 0));
+	objects.back()->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 2, 0));
+	controls=objects.back();
 	objects.push_back(ObjectPtr(new Cube()));
 	objects.push_back(ObjectPtr(new Cube()));
 	objects.push_back(ObjectPtr(new WirePlane()));
+
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
@@ -113,9 +116,10 @@ int initGL()
 
     glEnable(GL_DEPTH_TEST);
     //Initialize Projection Matrix
-//    glMatrixMode( GL_PROJECTION );
-//    glLoadIdentity();
-//    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,500.0);
+//    camera->init();
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
+    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,500.0);
     //Check for error
     error = glGetError();
     if( error != GL_NO_ERROR )
@@ -148,6 +152,7 @@ int initGL()
 
 void update()
 {
+//	camera->update();
     for(auto &obj: objects)
     {
       obj->update();
@@ -162,6 +167,8 @@ void render()
     glLoadIdentity();
     float pos[]= {2, 2, 3, 1};
     glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
+//    camera->render();
     for(auto &obj: objects)
     {
       obj->render();
@@ -213,6 +220,7 @@ int main( int argc, char* args[] )
 					glMatrixMode( GL_PROJECTION );
 					glViewport(0, 0, screenWidth, screenHeight);
 					glLoadIdentity();
+
                     gluPerspective(60.0, (float)screenWidth/screenHeight, 1.0, 500.0);
 //                    glOrtho( 0, screenWidth, screenHeight, 0, -1, 1 );
 					glMatrixMode( GL_MODELVIEW );
@@ -228,25 +236,25 @@ int main( int argc, char* args[] )
 			}
 		}
 		if ( keysHeld[SDL_SCANCODE_DOWN] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
+			objects[0]->t.setRotation(controls->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
 		if ( keysHeld[SDL_SCANCODE_UP] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
+			controls->t.setRotation(controls->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
 		if ( keysHeld[SDL_SCANCODE_LEFT] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0));
+			controls->t.setRotation(controls->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_RIGHT] )
-			objects[0]->t.setRotation(objects[0]->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+			controls->t.setRotation(controls->t.getRotation()*btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_W] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 0,-0.1));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0,-0.1));
 		if ( keysHeld[SDL_SCANCODE_S] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 0, 0.1));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, 0.1));
 		if ( keysHeld[SDL_SCANCODE_A] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(-.1, 0, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(-.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_D] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0.1, 0, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_E] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,0.1, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0,0.1, 0));
 		if ( keysHeld[SDL_SCANCODE_Q] )
-			objects[0]->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,-.1, 0));
+			controls->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,-.1, 0));
 		if ( keysHeld[SDL_SCANCODE_T] )
 			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0, -0.1));
 		if ( keysHeld[SDL_SCANCODE_G] )
