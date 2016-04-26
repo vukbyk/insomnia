@@ -53,16 +53,14 @@ SDL_GLContext gContext;
 typedef std::shared_ptr <Object3D> ObjectPtr;
 typedef std::vector <ObjectPtr> Objects;
 Objects objects;
-ObjectPtr controls;
+ObjectPtr controls, controls2;
 
 int init()
 {
-	objects.push_back(ObjectPtr(new Camera()));
-	objects.back()->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0, 2, 0));
-	controls=objects.back();
-	objects.push_back(ObjectPtr(new Cube()));
-	objects.push_back(ObjectPtr(new Cube()));
-	objects.push_back(ObjectPtr(new WirePlane()));
+	objects.push_back(ObjectPtr(new Camera())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2, 0)); controls=objects.back();
+	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2,-4)); controls2=objects.back();
+	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(4, 2,-4));
+//	objects.push_back(ObjectPtr(new WirePlane()));
 
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
@@ -153,10 +151,10 @@ int initGL()
 void update()
 {
 //	camera->update();
-    for(auto &obj: objects)
-    {
-      obj->update();
-    }
+//    for(auto &obj: objects)
+//    {
+//      obj->update();
+//    }
 }
 
 void render()
@@ -165,14 +163,21 @@ void render()
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-    float pos[]= {2, 2, 3, 1};
-    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+//    float pos[]= {2, 2, 3, 1};
+//    glLightfv(GL_LIGHT0, GL_POSITION, pos);
 
-//    camera->render();
+
+//    glTranslatef(0,-2,-14);
+//    glRotatef(45,0,1,0);
+
+//    gluLookAt (5.0f, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     for(auto &obj: objects)
     {
-      obj->render();
+    	obj->render();
     }
+//    glPopMatrix();
+
+
 }
 
 void close()
@@ -236,13 +241,13 @@ int main( int argc, char* args[] )
 			}
 		}
 		if ( keysHeld[SDL_SCANCODE_DOWN] )
-			objects[0]->t.setRotation(controls->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
+			controls->t.setRotation(controls->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
 		if ( keysHeld[SDL_SCANCODE_UP] )
 			controls->t.setRotation(controls->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
 		if ( keysHeld[SDL_SCANCODE_LEFT] )
-			controls->t.setRotation(controls->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+			controls->t.setRotation(btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0) * controls->t.getRotation());
 		if ( keysHeld[SDL_SCANCODE_RIGHT] )
-			controls->t.setRotation(controls->t.getRotation()*btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0));
+			controls->t.setRotation(btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0) * controls->t.getRotation());
 		if ( keysHeld[SDL_SCANCODE_W] )
 			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0,-0.1));
 		if ( keysHeld[SDL_SCANCODE_S] )
@@ -252,21 +257,21 @@ int main( int argc, char* args[] )
 		if ( keysHeld[SDL_SCANCODE_D] )
 			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_E] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0,0.1, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0.1, 0));
 		if ( keysHeld[SDL_SCANCODE_Q] )
-			controls->t.setOrigin(objects[0]->t.getOrigin()+btVector3(0,-.1, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, -.1, 0));
 		if ( keysHeld[SDL_SCANCODE_T] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0, -0.1));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0, -0.1));
 		if ( keysHeld[SDL_SCANCODE_G] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0, 0.1));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0, 0.1));
 		if ( keysHeld[SDL_SCANCODE_F] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(-.1, 0, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(-.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_H] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0.1, 0, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_Y] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, -.1, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, -.1, 0));
 		if ( keysHeld[SDL_SCANCODE_R] )
-			objects[1]->t.setOrigin(objects[1]->t.getOrigin()+btVector3(0, 0.1, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0.1, 0));
 		//Prepare
 		update();
 		//Render quad
