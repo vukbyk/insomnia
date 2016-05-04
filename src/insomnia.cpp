@@ -22,7 +22,9 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "Object3D.h"
+#include "Scene.h"
 #include "Camera.h"
+#include "AssimpModel.h"
 #include "WirePlane.h"
 #include "Cube.h"
 
@@ -51,16 +53,36 @@ SDL_Window* glWindow = NULL;
 SDL_GLContext gContext;
 
 typedef std::shared_ptr <Object3D> ObjectPtr;
+//typedef std::make_shared() <Object3D> ObjectPtr;
 typedef std::vector <ObjectPtr> Objects;
 Objects objects;
 ObjectPtr controls, controls2;
 
+
 int init()
 {
-	objects.push_back(ObjectPtr(new Camera())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2, 0)); controls=objects.back();
-	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2,-4)); controls2=objects.back();
-	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(4, 2,-4));
-//	objects.push_back(ObjectPtr(new WirePlane()));
+	objects.push_back(make_shared<Camera>());
+		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 1, 5));
+		controls=objects.back();
+//	objects.push_back(make_shared<WirePlane>());
+	objects.push_back(make_shared<AssimpModel>());
+	objects.push_back(ObjectPtr(make_shared<AssimpModel>("models/vulture.obj","models/vulture.png")));
+		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(2, 0, 0));
+	objects.push_back(ObjectPtr(make_shared<AssimpModel>("models/viking/viking.obj","models/viking/Viking_Diffuse.jpg")));
+		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 0, 0));
+		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 3, 0));
+	objects.rbegin()[1]->add(objects.begin()[0].get());
+	controls2=objects.rbegin()[1];
+	int x=0, y=0;
+	for(int i = 0; i < x; i++)
+		for(int j = 0; j < y; j++)
+		{
+			objects.push_back(make_shared<AssimpModel>(1));
+			objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(i*3-x, 0, j*3-y));
+//			controls2->add(objects.rbegin()[0].get());
+		}
+//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2,-4));
+//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(4, 2,-4));
 
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
@@ -103,6 +125,10 @@ int init()
 int initGL()
 {
     GLenum error = GL_NO_ERROR;
+	for(auto &obj: objects)
+	{
+		obj->init();
+	}
 
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
@@ -150,11 +176,10 @@ int initGL()
 
 void update()
 {
-//	camera->update();
-//    for(auto &obj: objects)
-//    {
-//      obj->update();
-//    }
+    for(auto &obj: objects)
+    {
+      obj->update();
+    }
 }
 
 void render()
@@ -163,9 +188,11 @@ void render()
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-//    float pos[]= {2, 2, 3, 1};
-//    glLightfv(GL_LIGHT0, GL_POSITION, pos);
 
+    float pos[]= {2, 2, 3, 1};
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
+//    scene.render();
 
 //    glTranslatef(0,-2,-14);
 //    glRotatef(45,0,1,0);
@@ -241,37 +268,73 @@ int main( int argc, char* args[] )
 			}
 		}
 		if ( keysHeld[SDL_SCANCODE_DOWN] )
+		{
 			controls->t.setRotation(controls->t.getRotation()*btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0));
+//			controls->t.setRotation(btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0) * controls->t.getRotation());
+//			controls->t.setOrigin(controls->t.getOrigin().rotate( btVector3(1, 0, 0), -SIMD_RADS_PER_DEG));
+		}
 		if ( keysHeld[SDL_SCANCODE_UP] )
+		{
 			controls->t.setRotation(controls->t.getRotation()*btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0));
+//			controls->t.setRotation(btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0) * controls->t.getRotation());
+//			controls->t.setOrigin(controls->t.getOrigin().rotate( btVector3(1, 0, 0), SIMD_RADS_PER_DEG));
+		}
 		if ( keysHeld[SDL_SCANCODE_LEFT] )
+		{
 			controls->t.setRotation(btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0) * controls->t.getRotation());
+//			controls->t.setOrigin(controls->t.getOrigin().rotate( controls->t.getBasis()*btVector3(0, 1, 0), -SIMD_RADS_PER_DEG));
+//			controls->t.setRotation(controls->t.getRotation()*btQuaternion( -1*SIMD_RADS_PER_DEG, 0, 0));
+		}
 		if ( keysHeld[SDL_SCANCODE_RIGHT] )
+		{
 			controls->t.setRotation(btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0) * controls->t.getRotation());
+//			controls->t.setOrigin(controls->t.getOrigin().rotate( controls->t.getBasis()*btVector3(0, 1, 0), SIMD_RADS_PER_DEG));
+//			controls->t.setRotation(controls->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+		}
 		if ( keysHeld[SDL_SCANCODE_W] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0,-0.1));
+			controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(0, 0,-.1)));
+//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, 0.1));
 		if ( keysHeld[SDL_SCANCODE_S] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, 0.1));
+			controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(0, 0, 0.1)));
+//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, -0.1));
 		if ( keysHeld[SDL_SCANCODE_A] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(-.1, 0, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(-0.1, 0, 0)));
+//			controls->t.setOrigin(controls->t.getOrigin()+btVector3( 0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_D] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0.1, 0, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3( 0.1, 0, 0)));
+//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(-0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_E] )
 			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0.1, 0));
 		if ( keysHeld[SDL_SCANCODE_Q] )
-			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, -.1, 0));
+			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0,-0.1, 0));
+
+
 		if ( keysHeld[SDL_SCANCODE_T] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0, -0.1));
+			controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3(0, 0,-1.1));
 		if ( keysHeld[SDL_SCANCODE_G] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0, 0.1));
+			controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3(0, 0, 0.1));
 		if ( keysHeld[SDL_SCANCODE_F] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(-.1, 0, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3(-0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_H] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0.1, 0, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 0.1, 0, 0));
 		if ( keysHeld[SDL_SCANCODE_Y] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, -.1, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3(0, 0.1, 0));
 		if ( keysHeld[SDL_SCANCODE_R] )
-			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0, 0.1, 0));
+			controls2->t.setOrigin(controls2->t.getOrigin()+btVector3(0,-0.1, 0));
+
+		if ( keysHeld[SDL_SCANCODE_I] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 1*SIMD_RADS_PER_DEG, 0));
+		if ( keysHeld[SDL_SCANCODE_K] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0,-1*SIMD_RADS_PER_DEG, 0));
+		if ( keysHeld[SDL_SCANCODE_J] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_L] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion(-1*SIMD_RADS_PER_DEG, 0, 0));
+		if ( keysHeld[SDL_SCANCODE_U] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 0, 1*SIMD_RADS_PER_DEG));
+		if ( keysHeld[SDL_SCANCODE_O] )
+			controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 0,-1*SIMD_RADS_PER_DEG));
+
 		//Prepare
 		update();
 		//Render quad
