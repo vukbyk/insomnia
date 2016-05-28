@@ -21,7 +21,6 @@ AssimpModel::AssimpModel()
     uvArray = NULL;
     image = NULL;
     numVerts = 0;
-
 }
 
 AssimpModel::AssimpModel(int idm)
@@ -63,18 +62,18 @@ void AssimpModel::init()
 		idModel = ++idModel_counter;
 		idTexture = idModel;
 		loadModel(modelFile.c_str());
-		    loadTexture(textureFile.c_str());
-		    glNewList(idModel, GL_COMPILE);
-				glBindTexture(GL_TEXTURE_2D, idTexture);
-		        glBegin(GL_TRIANGLES);
-		            for(uint i=0; i < numVerts; i++)
-		            {
-		                glTexCoord2d(uvArray[2*i], 1-uvArray[2*i+1]);
-		                glNormal3f(normalArray[3*i],normalArray[3*i+1],normalArray[3*i+2]);
-		                glVertex3f(vertexArray[3*i],vertexArray[3*i+1],vertexArray[3*i+2]);
-		            }
-		        glEnd();
-		    glEndList();
+		loadTexture(textureFile.c_str());
+		glNewList(idModel, GL_COMPILE);
+			glBindTexture(GL_TEXTURE_2D, idTexture);
+			glBegin(GL_TRIANGLES);
+				for(uint i=0; i < numVerts; i++)
+				{
+					glTexCoord2d(uvArray[2*i], 1-uvArray[2*i+1]);
+					glNormal3f(normalArray[3*i],normalArray[3*i+1],normalArray[3*i+2]);
+					glVertex3f(vertexArray[3*i],vertexArray[3*i+1],vertexArray[3*i+2]);
+				}
+			glEnd();
+		glEndList();
 	}
 
     Object3D::init();

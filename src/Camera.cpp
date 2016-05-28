@@ -60,6 +60,7 @@ void Camera::setM()
 {
 //	cout<<"cet: "<<id<<endl;
 	tm.inverse().getOpenGLMatrix(m);
+//	tm.getOpenGLMatrix(m);
 }
 
 Camera::~Camera()
