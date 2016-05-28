@@ -8,12 +8,13 @@
 #ifndef SCENE_H_
 #define SCENE_H_
 
+#include <memory>
 #include "Object3D.h"
 #include "Camera.h"
 
 class Scene: public Object3D
 {
-//	Camera *camera;
+	std::shared_ptr <Object3D> camera;
 public:
 
 	Scene();

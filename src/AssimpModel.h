@@ -17,7 +17,6 @@ using namespace std;
 
 static unsigned int idModel_counter=0;
 
-
 class AssimpModel: public Object3D
 {
 

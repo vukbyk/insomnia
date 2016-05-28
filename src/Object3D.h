@@ -37,7 +37,7 @@ public:
 	virtual void setM();
 	virtual const float* getM() const { return m;}
 	virtual void add(Object3D *o);
-	void setParent(Object3D* parent);
+	virtual void setParent(Object3D* parent);
 	virtual void unparent();
 //	virtual const float* mt() { t.getOpenGLMatrix(m); return m; }
 	virtual ~Object3D();
