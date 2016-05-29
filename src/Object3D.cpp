@@ -12,8 +12,11 @@
 Object3D::Object3D()
 {
 	id = ++id_counter;
-	t.setIdentity();
-	tm.setIdentity();
+//	t=tm=NULL;
+	t = new btTransform();
+	tm = new btTransform();
+	t->setIdentity();
+	tm->setIdentity();
 	parent=NULL;
 	objects=NULL;
 }
@@ -21,17 +24,19 @@ Object3D::Object3D()
 Object3D::Object3D(btTransform argT)
 {
 	id = ++id_counter;
-	tm=t=argT;
+	t = new btTransform();
+	tm = new btTransform();
+	*tm=*t=argT;
 	parent=NULL;
 	objects=NULL;
 }
 
-void Object3D::init()
+void Object3D::initGL()
 {
 	if(objects)
 		for(auto &obj: *objects)
 		{
-			obj->init();
+			obj->initGL();
 		}
 }
 
@@ -43,7 +48,7 @@ void Object3D::update()
 		if(parent && !parent->updated)
 		{
 			parent->update();
-			tm=parent->tm*tm;
+			*tm=*parent->tm * *tm;
 		}
 		setM();
 		updated=true;
@@ -68,7 +73,7 @@ void Object3D::render()
 void Object3D::setM()
 {
 //	cout<<"set: "<<id<<endl;
-	tm.getOpenGLMatrix(m);
+	tm->getOpenGLMatrix(m);
 }
 
 void Object3D::add(Object3D *o)
@@ -103,5 +108,7 @@ Object3D::~Object3D()
 		{
 			obj->parent=NULL;
 		}
+//	delete[] t;
+//	delete[] tm;
 }
 

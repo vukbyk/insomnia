@@ -10,6 +10,7 @@
 
 ModelCallList::ModelCallList()
 {
+	idModel=0;
 }
 
 ModelCallList::ModelCallList(AssimpModel& argAssimp)

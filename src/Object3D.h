@@ -25,13 +25,13 @@ protected:
 	bool updated=false;
 	Object3D *parent;
 public:
-	btTransform t;
-	btTransform tm;
+	btTransform *t;
+	btTransform *tm;
 	std::vector <Object3D*> *objects;
 public:
 	Object3D();
     Object3D(btTransform argT);
-    virtual void init();
+    virtual void initGL();
     virtual void update();
     virtual void render();
 	virtual void setM();
@@ -41,8 +41,5 @@ public:
 	virtual void unparent();
 //	virtual const float* mt() { t.getOpenGLMatrix(m); return m; }
 	virtual ~Object3D();
-
-
-
 };
 #endif /* OBJECT3D_H_ */

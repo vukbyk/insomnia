@@ -10,18 +10,18 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <bullet/btBulletDynamicsCommon.h>
 
 #include <vector>
 #include <memory>
 
 #include "Object3D.h"
+#include "Body.h"
 #include "ModelCallList.h"
 
 
 #include <iostream>
 using namespace std;
-
-
 
 
 typedef std::shared_ptr <Object3D> ObjectPtr;
@@ -58,10 +58,17 @@ class Sprava
 	Objects objects;
 	ObjectPtr controls, controls2;
 
-//	shared_ptr<ModelCallList> player;
+	shared_ptr<Body> player;
 	shared_ptr<AssimpModel> vultureModel;
 	shared_ptr<AssimpModel> specialopsModel;
 	shared_ptr<AssimpModel> bansheeModel;
+
+//Physics
+	btDynamicsWorld* world;	                    //every physical object go to the world
+	btDispatcher* dispatcher;	                //what collision algorithm to use?
+	btCollisionConfiguration* collisionConfig;	//what collision algorithm to use?
+	btBroadphaseInterface* broadphase;	        //should Bullet examine every object, or just what close to each other
+	btConstraintSolver* solver;					//solve collisions, apply forces, impulses
 
 public:
 	Sprava();

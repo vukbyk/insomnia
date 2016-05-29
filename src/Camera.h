@@ -19,14 +19,14 @@ class Camera: public Object3D
 public:
 	Camera();
 	Camera(btTransform argT);
-	virtual void init();
+	virtual void initGL();
 //	virtual void update();
 	virtual void render();
 	void setM();
 	virtual const float* getM() const { return m;}
 	virtual const float* mt()
 	{
-		t.inverse().getOpenGLMatrix(m);
+		t->inverse().getOpenGLMatrix(m);
 		return m;
 	}
 	virtual ~Camera();

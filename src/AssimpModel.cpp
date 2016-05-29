@@ -55,7 +55,7 @@ void AssimpModel::render()
 	Object3D::render();
 }
 
-void AssimpModel::init()
+void AssimpModel::initGL()
 {
 	if(idModel==0)
 	{
@@ -76,7 +76,7 @@ void AssimpModel::init()
 		glEndList();
 	}
 
-    Object3D::init();
+    Object3D::initGL();
 }
 
 void AssimpModel::loadModel(const char* modelFile)

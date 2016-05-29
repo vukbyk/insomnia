@@ -20,6 +20,7 @@
 #include "AssimpModel.h"
 #include "ModelCallList.h"
 
+
 #include "WirePlane.h"
 #include "Cube.h"
 
@@ -84,6 +85,26 @@ int Sprava::init()
 	}
 	SDL_GL_SetSwapInterval(0);
 
+
+	//Physiscs
+
+    collisionConfig=new btDefaultCollisionConfiguration();
+    dispatcher=new btCollisionDispatcher(collisionConfig);
+    broadphase=new btDbvtBroadphase();
+    solver=new btSequentialImpulseConstraintSolver();
+    world=new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfig);
+    world->setGravity(btVector3(0,-9.81,0));	//gravity on Earth
+
+    btTransform tr;
+    tr.setIdentity();
+    tr.setOrigin(btVector3(0,0,0));
+    btStaticPlaneShape* plane=new btStaticPlaneShape(btVector3(0,1,0),0);
+    btMotionState* motion=new btDefaultMotionState(tr);
+    btRigidBody::btRigidBodyConstructionInfo info(0.0,motion,plane);
+    btRigidBody* body=new btRigidBody(info);
+    body->setRestitution(1);
+    world->addRigidBody(body);
+
 	//Initialize OpenGL
 
 	vultureModel=make_shared<AssimpModel>("models/vulture.obj","models/vulture.png");
@@ -93,23 +114,27 @@ int Sprava::init()
 	bansheeModel=make_shared<AssimpModel>("models/banshee.obj","models/banshee.png");
 	models.push_back(bansheeModel);
 	for(auto &mdl: models)
-		mdl->init();
+		mdl->initGL();
 
 	objects.push_back(make_shared<Camera>());
-		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 1, 5));
+		objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 1, 5));
 		controls=objects.back();
-	objects.push_back(make_shared<ModelCallList>(*vultureModel));
+
+	player=make_shared<Body>(*vultureModel);
+	world->addRigidBody(player->body);
+	objects.push_back(player);
+	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
 	controls2=objects.back();
 	objects.push_back(make_shared<ModelCallList>(*bansheeModel));
-	objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(2, 0, 0));
+	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(2, 0, 0));
 	objects.push_back(make_shared<ModelCallList>(*specialopsModel));
-	objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(-2, 0, 0));
+	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(-2, 0, 0));
 //	objects.push_back(make_shared<AssimpModel>());
 //	objects.push_back(ObjectPtr(make_shared<AssimpModel>("models/vultureModel.obj","models/vultureModel.png")));
-//			objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2, 0));
+//			objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
 //	objects.push_back(ObjectPtr(make_shared<AssimpModel>("models/viking/viking.obj","models/viking/Viking_Diffuse.jpg")));
-//		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 0, 0));
-//		objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 3, 0));
+//		objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 0, 0));
+//		objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 3, 0));
 ////	objects.rbegin()[1]->add(objects.begin()[0].get());
 //	controls2=objects.rbegin()[1];
 	int x=100, y=500;
@@ -117,11 +142,11 @@ int Sprava::init()
 		for(int j = 0; j < y; j++)
 		{
 			objects.push_back(make_shared</*AssimpModel*/ModelCallList>(rand()%3+1));
-			objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(i*3-x, 0, j*3-y));
+			objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(i*3-x, 0, j*3-y));
 //			controls->add(objects.rbegin()[0].get());
 		}
-//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(0, 2,-4));
-//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t.setOrigin(objects.back()->t.getOrigin()+btVector3(4, 2,-4));
+//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2,-4));
+//	objects.push_back(ObjectPtr(new Cube())); objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(4, 2,-4));
 
     //Initialize SDL
 	if( !initGL() )
@@ -139,7 +164,7 @@ int Sprava::initGL()
 
 	for(auto &obj: objects)
 	{
-		obj->init();
+		obj->initGL();
 	}
 
 
@@ -194,6 +219,7 @@ void Sprava::update()
     {
       obj->update();
     }
+    world->stepSimulation(1/60.0);
 }
 
 void Sprava::render()
@@ -263,73 +289,79 @@ void Sprava::controlKeySetup()
 		quit=true;
 	if ( keysHeld[SDL_SCANCODE_DOWN] )
 	{
-		controls->t.setRotation(controls->t.getRotation()*btQuaternion(0, -30*SIMD_RADS_PER_DEG*dt, 0));
-//			controls->t.setRotation(btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0) * controls->t.getRotation());
-//			controls->t.setOrigin(controls->t.getOrigin().rotate( btVector3(1, 0, 0), -SIMD_RADS_PER_DEG));
+		controls->t->setRotation(controls->t->getRotation()*btQuaternion(0, -30*SIMD_RADS_PER_DEG*dt, 0));
+//			controls->t->setRotation(btQuaternion(0, -1*SIMD_RADS_PER_DEG, 0) * controls->t->getRotation());
+//			controls->t->setOrigin(controls->t->getOrigin().rotate( btVector3(1, 0, 0), -SIMD_RADS_PER_DEG));
 	}
 	if ( keysHeld[SDL_SCANCODE_UP] )
 	{
-		controls->t.setRotation(controls->t.getRotation()*btQuaternion(0,  30*SIMD_RADS_PER_DEG*dt, 0));
-//			controls->t.setRotation(btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0) * controls->t.getRotation());
-//			controls->t.setOrigin(controls->t.getOrigin().rotate( btVector3(1, 0, 0), SIMD_RADS_PER_DEG));
+		controls->t->setRotation(controls->t->getRotation()*btQuaternion(0,  30*SIMD_RADS_PER_DEG*dt, 0));
+//			controls->t->setRotation(btQuaternion(0,  1*SIMD_RADS_PER_DEG, 0) * controls->t->getRotation());
+//			controls->t->setOrigin(controls->t->getOrigin().rotate( btVector3(1, 0, 0), SIMD_RADS_PER_DEG));
 	}
 	if ( keysHeld[SDL_SCANCODE_LEFT] )
 	{
-		controls->t.setRotation(btQuaternion( 30*SIMD_RADS_PER_DEG*dt, 0, 0) * controls->t.getRotation());
-//			controls->t.setOrigin(controls->t.getOrigin().rotate( controls->t.getBasis()*btVector3(0, 1, 0), -SIMD_RADS_PER_DEG));
-//			controls->t.setRotation(controls->t.getRotation()*btQuaternion( -1*SIMD_RADS_PER_DEG, 0, 0));
+		controls->t->setRotation(btQuaternion( 30*SIMD_RADS_PER_DEG*dt, 0, 0) * controls->t->getRotation());
+//			controls->t->setOrigin(controls->t->getOrigin().rotate( controls->t->getBasis()*btVector3(0, 1, 0), -SIMD_RADS_PER_DEG));
+//			controls->t->setRotation(controls->t->getRotation()*btQuaternion( -1*SIMD_RADS_PER_DEG, 0, 0));
 	}
 	if ( keysHeld[SDL_SCANCODE_RIGHT] )
 	{
-		controls->t.setRotation(btQuaternion(-30*SIMD_RADS_PER_DEG*dt, 0, 0) * controls->t.getRotation());
-//			controls->t.setOrigin(controls->t.getOrigin().rotate( controls->t.getBasis()*btVector3(0, 1, 0), SIMD_RADS_PER_DEG));
-//			controls->t.setRotation(controls->t.getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
+		controls->t->setRotation(btQuaternion(-30*SIMD_RADS_PER_DEG*dt, 0, 0) * controls->t->getRotation());
+//			controls->t->setOrigin(controls->t->getOrigin().rotate( controls->t->getBasis()*btVector3(0, 1, 0), SIMD_RADS_PER_DEG));
+//			controls->t->setRotation(controls->t->getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
 	}
 	if ( keysHeld[SDL_SCANCODE_W] )
-		controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(0, 0,-1.f)*dt));
-//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, 0.1));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0,-1.f)*dt));
+//			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, 0.1));
 	if ( keysHeld[SDL_SCANCODE_S] )
-		controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(0, 0, 1.f)*dt));
-//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 0, -0.1));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0, 1.f)*dt));
+//			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, -0.1));
 	if ( keysHeld[SDL_SCANCODE_A] )
-		controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3(-1.f, 0, 0)*dt));
-//			controls->t.setOrigin(controls->t.getOrigin()+btVector3( 0.1, 0, 0));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(-1.f, 0, 0)*dt));
+//			controls->t->setOrigin(controls->t->getOrigin()+btVector3( 0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_D] )
-		controls->t.setOrigin(controls->t.getOrigin()+quatRotate(controls->t.getRotation(), btVector3( 1.f, 0, 0)*dt));
-//			controls->t.setOrigin(controls->t.getOrigin()+btVector3(-0.1, 0, 0));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3( 1.f, 0, 0)*dt));
+//			controls->t->setOrigin(controls->t->getOrigin()+btVector3(-0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_E] )
-		controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 1.f, 0)*dt);
+		controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 1.f, 0)*dt);
 	if ( keysHeld[SDL_SCANCODE_Q] )
-		controls->t.setOrigin(controls->t.getOrigin()+btVector3(0, 1.f, 0)*dt);
+		controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 1.f, 0)*dt);
 
 	if ( keysHeld[SDL_SCANCODE_T] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 0, 0,-1.f)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3( 0, 0,-1.f)*dt);
 	if ( keysHeld[SDL_SCANCODE_G] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 0, 0, 1.f)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3( 0, 0, 1.f)*dt);
 	if ( keysHeld[SDL_SCANCODE_F] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3(-1.f, 0, 0)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3(-1.f, 0, 0)*dt);
 	if ( keysHeld[SDL_SCANCODE_H] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 1.f, 0, 0)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3( 1.f, 0, 0)*dt);
 	if ( keysHeld[SDL_SCANCODE_Y] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 0, 1.f, 0)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3( 0, 1.f, 0)*dt);
 	if ( keysHeld[SDL_SCANCODE_R] )
-		controls2->t.setOrigin(controls2->t.getOrigin()+controls2->t.getBasis()*btVector3( 0,-1.f, 0)*dt);
+		controls2->t->setOrigin(controls2->t->getOrigin()+controls2->t->getBasis()*btVector3( 0,-1.f, 0)*dt);
 
 	if ( keysHeld[SDL_SCANCODE_I] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 30*SIMD_RADS_PER_DEG*dt, 0));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 0, 30*SIMD_RADS_PER_DEG*dt, 0));
 	if ( keysHeld[SDL_SCANCODE_K] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0,-30*SIMD_RADS_PER_DEG*dt, 0));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 0,-30*SIMD_RADS_PER_DEG*dt, 0));
 	if ( keysHeld[SDL_SCANCODE_J] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 30*SIMD_RADS_PER_DEG*dt, 0, 0));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 30*SIMD_RADS_PER_DEG*dt, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_L] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion(-30*SIMD_RADS_PER_DEG*dt, 0, 0));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion(-30*SIMD_RADS_PER_DEG*dt, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_U] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 0, 30*SIMD_RADS_PER_DEG*dt));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 0, 0, 30*SIMD_RADS_PER_DEG*dt));
 	if ( keysHeld[SDL_SCANCODE_O] )
-		controls2->t.setRotation(controls2->t.getRotation()*btQuaternion( 0, 0,-30*SIMD_RADS_PER_DEG*dt));
+		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 0, 0,-30*SIMD_RADS_PER_DEG*dt));
+
+	if (keysHeld[SDL_SCANCODE_SPACE])
+		player->body->applyCentralForce(btVector3(0,500 ,0));
 
 	if ( keysHeld[SDL_SCANCODE_P] && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL]))
 		(fps==false)?fps=true:fps=false;
+
+	if ( keysHeld[SDL_SCANCODE_P] && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL]))
+			(fps==false)?fps=true:fps=false;
 }
 
 void Sprava::printFPS()

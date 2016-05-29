@@ -25,7 +25,7 @@ Camera::Camera(btTransform argT) : Object3D(argT)
 	far=500.;
 }
 
-void Camera::init()
+void Camera::initGL()
 {
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -59,7 +59,7 @@ void Camera::render()
 void Camera::setM()
 {
 //	cout<<"cet: "<<id<<endl;
-	tm.inverse().getOpenGLMatrix(m);
+	tm->inverse().getOpenGLMatrix(m);
 //	tm.getOpenGLMatrix(m);
 }
 

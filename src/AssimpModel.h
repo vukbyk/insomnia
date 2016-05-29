@@ -37,7 +37,7 @@ public:
 	AssimpModel(int idm);
 	AssimpModel(string, string);
 	virtual void render();
-	virtual void init();
+	virtual void initGL();
 	virtual void loadModel(const char* modelFile);
 	virtual void loadTexture(const char* textureFile);
 	virtual ~AssimpModel();
