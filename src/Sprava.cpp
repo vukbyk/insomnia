@@ -365,8 +365,6 @@ void Sprava::controlKeySetup()
 	if ( keysHeld[SDL_SCANCODE_P] && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL]))
 		(fps==false)?fps=true:fps=false;
 
-	if ( keysHeld[SDL_SCANCODE_P] && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL]))
-			(fps==false)?fps=true:fps=false;
 }
 
 void Sprava::printFPS()
