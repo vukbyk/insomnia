@@ -123,7 +123,12 @@ int Sprava::init()
 	player=make_shared<Body>(*vultureModel);
 	world->addRigidBody(player->body);
 	objects.push_back(player);
-	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
+//	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
+
+    btTransform initialTransform;
+    initialTransform.setIdentity();
+    initialTransform.setOrigin(btVector3(2, 2, 0));
+//	player->body->setCenterOfMassTransform( initialTransform);
 	controls2=objects.back();
 	objects.push_back(make_shared<ModelCallList>(*bansheeModel));
 	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(2, 0, 0));
