@@ -11,6 +11,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/BulletWorldImporter/btBulletWorldImporter.h>
 
 #include <vector>
 #include <memory>
@@ -18,6 +19,7 @@
 #include "Object3D.h"
 #include "Body.h"
 #include "ModelCallList.h"
+#include "DebugBtInterface.h"
 
 
 #include <iostream>
@@ -62,6 +64,7 @@ class Sprava
 	shared_ptr<AssimpModel> vultureModel;
 	shared_ptr<AssimpModel> specialopsModel;
 	shared_ptr<AssimpModel> bansheeModel;
+	shared_ptr<AssimpModel> marsModel;
 
 //Physics
 	btDynamicsWorld* world;	                    //every physical object go to the world
@@ -69,6 +72,7 @@ class Sprava
 	btCollisionConfiguration* collisionConfig;	//what collision algorithm to use?
 	btBroadphaseInterface* broadphase;	        //should Bullet examine every object, or just what close to each other
 	btConstraintSolver* solver;					//solve collisions, apply forces, impulses
+	DebugBtInterface *debugBtInterface;
 
 public:
 	Sprava();

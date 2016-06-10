@@ -94,16 +94,35 @@ int Sprava::init()
     solver=new btSequentialImpulseConstraintSolver();
     world=new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfig);
     world->setGravity(btVector3(0,-9.81,0));	//gravity on Earth
+    debugBtInterface=new DebugBtInterface(btIDebugDraw::DBG_DrawWireframe
+    									| btIDebugDraw::DBG_DrawAabb
+										| btIDebugDraw::DBG_EnableCCD
+										| btIDebugDraw::DBG_DrawConstraints
+										| btIDebugDraw::DBG_DrawFeaturesText
+										| btIDebugDraw::DBG_DrawText
+										| btIDebugDraw::DBG_DrawFrames
+										);
+//    world->setDebugDrawer(debugBtInterface);
+
 
     btTransform tr;
     tr.setIdentity();
-    tr.setOrigin(btVector3(0,0,0));
-    btStaticPlaneShape* plane=new btStaticPlaneShape(btVector3(0,1,0),0);
-    btMotionState* motion=new btDefaultMotionState(tr);
-    btRigidBody::btRigidBodyConstructionInfo info(0.0,motion,plane);
-    btRigidBody* body=new btRigidBody(info);
-    body->setRestitution(1);
-    world->addRigidBody(body);
+    tr.setOrigin(btVector3(0, -15,0));
+//    btStaticPlaneShape* plane=new btStaticPlaneShape(btVector3(0,1,0),0);
+//    btMotionState* motion=new btDefaultMotionState(tr);
+//    btRigidBody::btRigidBodyConstructionInfo info(0.0,motion,plane);
+//    btRigidBody* planeBody=new btRigidBody(info);
+//    planeBody->setRestitution(.33);
+//    world->addRigidBody(planeBody);
+
+	btBulletWorldImporter* fileLoader = new btBulletWorldImporter();
+	fileLoader->loadFile("models/mars/mars.bullet");
+	btCollisionObject* obj = fileLoader->getRigidBodyByIndex(0);
+	btRigidBody *mars;
+	mars = btRigidBody::upcast(obj);
+	mars->translate(btVector3(0, 0,0));
+	world->addRigidBody(mars);
+
 
 	//Initialize OpenGL
 
@@ -113,6 +132,8 @@ int Sprava::init()
 	models.push_back(specialopsModel);
 	bansheeModel=make_shared<AssimpModel>("models/banshee.obj","models/banshee.png");
 	models.push_back(bansheeModel);
+	marsModel=make_shared<AssimpModel>("models/mars/mars.obj","models/mars/mars8kcompress.png");
+	models.push_back(marsModel);
 	for(auto &mdl: models)
 		mdl->initGL();
 
@@ -121,8 +142,9 @@ int Sprava::init()
 		controls=objects.back();
 
 	player=make_shared<Body>(*vultureModel);
-	world->addRigidBody(player->body);
 	objects.push_back(player);
+	world->addRigidBody(player->body);
+	player->createVehicle(world);
 //	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
 
     btTransform initialTransform;
@@ -134,6 +156,8 @@ int Sprava::init()
 	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(2, 0, 0));
 	objects.push_back(make_shared<ModelCallList>(*specialopsModel));
 	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(-2, 0, 0));
+	objects.push_back(make_shared<ModelCallList>(*marsModel));
+	objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, -1535, 0));
 //	objects.push_back(make_shared<AssimpModel>());
 //	objects.push_back(ObjectPtr(make_shared<AssimpModel>("models/vultureModel.obj","models/vultureModel.png")));
 //			objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2, 0));
@@ -142,7 +166,7 @@ int Sprava::init()
 //		objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 3, 0));
 ////	objects.rbegin()[1]->add(objects.begin()[0].get());
 //	controls2=objects.rbegin()[1];
-	int x=100, y=500;
+	int x=0*10, y=0*500;
 	for(int i = 0; i < x; i++)
 		for(int j = 0; j < y; j++)
 		{
@@ -153,7 +177,7 @@ int Sprava::init()
 //	objects.push_back(ObjectPtr(new Cube())); objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(0, 2,-4));
 //	objects.push_back(ObjectPtr(new Cube())); objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(4, 2,-4));
 
-    //Initialize SDL
+    //Initialize SDL !?!ZASTO?!?
 	if( !initGL() )
 	{
 		printf( "Unable to initialize OpenGL!" );
@@ -177,6 +201,7 @@ int Sprava::initGL()
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+
     glEnable(GL_COLOR_MATERIAL);
 
     float dif[]= {1,1,1,1};
@@ -187,7 +212,7 @@ int Sprava::initGL()
 //    camera->init();
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,500.0);
+    gluPerspective(60.0, (float)screenWidth/screenHeight,.1,1500.0);
     //Check for error
     error = glGetError();
     if( error != GL_NO_ERROR )
@@ -220,21 +245,24 @@ int Sprava::initGL()
 
 void Sprava::update()
 {
+    world->stepSimulation(dt, 12);
+
     for(auto &obj: objects)
     {
       obj->update();
     }
-    world->stepSimulation(1/60.0);
 }
 
 void Sprava::render()
 {
 	glDepthMask (true);
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glMatrixMode( GL_PROJECTION );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
     float pos[]= {2, 2, 3, 1};
+    glColor3f(1,1,1);
     glLightfv(GL_LIGHT0, GL_POSITION, pos);
 
 //    scene.render();
@@ -247,6 +275,7 @@ void Sprava::render()
     {
     	obj->render();
     }
+    world-> debugDrawWorld();
 //    player.render();
 //    glPopMatrix();
 
@@ -317,16 +346,16 @@ void Sprava::controlKeySetup()
 //			controls->t->setRotation(controls->t->getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
 	}
 	if ( keysHeld[SDL_SCANCODE_W] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0,-1.f)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0,-100.f)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, 0.1));
 	if ( keysHeld[SDL_SCANCODE_S] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0, 1.f)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0, 100.f)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, -0.1));
 	if ( keysHeld[SDL_SCANCODE_A] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(-1.f, 0, 0)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(-100.f, 0, 0)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3( 0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_D] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3( 1.f, 0, 0)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3( 100.f, 0, 0)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(-0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_E] )
 		controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 1.f, 0)*dt);
@@ -359,10 +388,28 @@ void Sprava::controlKeySetup()
 	if ( keysHeld[SDL_SCANCODE_O] )
 		controls2->t->setRotation(controls2->t->getRotation()*btQuaternion( 0, 0,-30*SIMD_RADS_PER_DEG*dt));
 
-	if (keysHeld[SDL_SCANCODE_SPACE])
-		player->body->applyCentralForce(btVector3(0,500 ,0));
 
-	if ( keysHeld[SDL_SCANCODE_P] && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL]))
+	if ( keysHeld[SDL_SCANCODE_KP_5] )
+			player->vehicle->applyEngineForce(1500,0), player->vehicle->applyEngineForce(1500,1)
+			,player->vehicle->applyEngineForce(1500,2), player->vehicle->applyEngineForce(1500,3);
+	if ( keysHeld[SDL_SCANCODE_KP_2] )
+			player->vehicle->applyEngineForce(0,0), player->vehicle->applyEngineForce(0,1)
+			,player->vehicle->applyEngineForce(0,2), player->vehicle->applyEngineForce(0,3);
+	if ( keysHeld[SDL_SCANCODE_KP_1] && player->vehicle->getSteeringValue(3)<SIMD_RADS_PER_DEG*45)
+		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(2)+SIMD_RADS_PER_DEG*45*dt,2),
+		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(3)+SIMD_RADS_PER_DEG*45*dt,3);
+	if ( keysHeld[SDL_SCANCODE_KP_3] && player->vehicle->getSteeringValue(3)>-SIMD_RADS_PER_DEG*45)
+		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(2)-SIMD_RADS_PER_DEG*45*dt,2),
+		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(3)-SIMD_RADS_PER_DEG*45*dt,3);
+	if ( keysHeld[SDL_SCANCODE_KP_4] )
+		player->vehicle->setBrake(130,0),player->vehicle->setBrake(130,1),player->vehicle->setBrake(130,2),player->vehicle->setBrake(130,3);
+	if ( keysHeld[SDL_SCANCODE_KP_0]||keysHeld[SDL_SCANCODE_KP_5] )
+			player->vehicle->setBrake(0,0),player->vehicle->setBrake(0,1),player->vehicle->setBrake(0,2),player->vehicle->setBrake(0,3);
+
+	if (keysHeld[SDL_SCANCODE_SPACE])
+		player->body->applyCentralForce(btVector3(0,10000,0));
+
+	if ( keysHeld[SDL_SCANCODE_P]/* && (keysHeld[SDL_SCANCODE_LCTRL] || keysHeld[SDL_SCANCODE_RCTRL])*/)
 		(fps==false)?fps=true:fps=false;
 
 }
