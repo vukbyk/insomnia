@@ -20,7 +20,7 @@ public:
 	Camera();
 	Camera(btTransform argT);
 	virtual void initGL();
-//	virtual void update();
+	virtual void update();
 	virtual void render();
 	void setM();
 	virtual const float* getM() const { return m;}

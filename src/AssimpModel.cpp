@@ -12,6 +12,8 @@
 #include <assimp/postprocess.h>
 #include <SDL2/SDL_image.h>
 
+static unsigned int idModel_counter=0;
+
 AssimpModel::AssimpModel()
 {
 	modelFile = "models/trup.obj";
@@ -48,11 +50,12 @@ AssimpModel::AssimpModel(string model, string texture)
 
 void AssimpModel::render()
 {
-	glPushMatrix();
-		glMultMatrixf(getM());
-		glCallList(idModel);
-	glPopMatrix();
-	Object3D::render();
+	cout<<"Error cant render assimp model like it is"<<endl;
+//	glPushMatrix();
+//		glMultMatrixf(getM());
+//		glCallList(idModel);
+//	glPopMatrix();
+//	Object3D::render();
 }
 
 void AssimpModel::initGL()
@@ -76,7 +79,7 @@ void AssimpModel::initGL()
 		glEndList();
 	}
 
-    Object3D::initGL();
+//    Object3D::initGL();
 }
 
 void AssimpModel::loadModel(const char* modelFile)

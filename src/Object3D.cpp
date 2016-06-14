@@ -6,19 +6,20 @@
  */
 
 #include "Object3D.h"
-
 #include "GL/glut.h"
+
+static unsigned long int id_counter=0;
 
 Object3D::Object3D()
 {
 	id = ++id_counter;
-//	t=tm=NULL;
 	t = new btTransform();
 	tm = new btTransform();
 	t->setIdentity();
 	tm->setIdentity();
 	parent=NULL;
 	objects=NULL;
+	updated=false;
 }
 
 Object3D::Object3D(btTransform argT)
@@ -29,45 +30,76 @@ Object3D::Object3D(btTransform argT)
 	*tm=*t=argT;
 	parent=NULL;
 	objects=NULL;
+	updated=false;
 }
 
 void Object3D::initGL()
 {
-	if(objects)
-		for(auto &obj: *objects)
-		{
-			obj->initGL();
-		}
+//	if(objects)
+//		for(auto &obj: *objects)
+//		{
+//			obj->initGL();
+//		}
 }
 
 void Object3D::update()
 {
+//	if(!updated)
+//	{
+//		*tm=*t;
+//		if(parent)
+//		{
+//			if(!parent->updated)
+//				parent->update();
+//			*tm=*parent->tm * *tm;
+//		}
+//		setM();
+//		updated=true;
+//	}
 	if(!updated)
 	{
-		tm=t;
-		if(parent && !parent->updated)
+		*tm=*t;
+		if(parent)
 		{
-			parent->update();
+			if(!parent->updated)
+				parent->update();
 			*tm=*parent->tm * *tm;
 		}
 		setM();
 		updated=true;
+
+		if(objects)
+			for(auto &obj: *objects)
+				obj->update();
 	}
-//	if(objects)
-//	    for(auto &obj: *objects)
-//	    {
-//	      	obj->update();
-//	    }
+
+}
+
+void Object3D::updateNoParent()
+{
+	if(!updated)
+	{
+		*tm=*t;
+//		if(parent)
+//		{
+//			if(!parent->updated)
+//				parent->update();
+//			*tm=*parent->tm * *tm;
+//		}
+		setM();
+		updated=true;
+		if(objects)
+			for(auto &obj: *objects)
+				obj->update();
+	}
 }
 
 void Object3D::render()
 {
 	updated=false;
-//	if(objects)
-//		for(auto &obj: *objects)
-//		{
-//		  obj->render();
-//		}
+	if(objects)
+		for(auto &obj: *objects)
+		  obj->render();
 }
 
 void Object3D::setM()
@@ -78,16 +110,19 @@ void Object3D::setM()
 
 void Object3D::add(Object3D *o)
 {
-	if(objects)
+	if(o!=this)
 	{
-		objects->push_back(o);
-		o->setParent(this);
-	}
-	else
-	{
-		objects = new std::vector <Object3D*>();
-		objects->push_back(o);
-		o->setParent(this);
+		if(objects)
+		{
+			objects->push_back(o);
+			o->setParent(this);
+		}
+		else
+		{
+			objects = new std::vector <Object3D*>();
+			objects->push_back(o);
+			o->setParent(this);
+		}
 	}
 }
 
@@ -98,7 +133,7 @@ void Object3D::setParent(Object3D* parentArg)
 
 void Object3D::unparent()
 {
-	parent=parent->parent;
+//	parent=parent->parent;
 }
 
 Object3D::~Object3D()
@@ -108,7 +143,7 @@ Object3D::~Object3D()
 		{
 			obj->parent=NULL;
 		}
-//	delete[] t;
-//	delete[] tm;
+//	delete t;
+//	delete tm;
 }
 

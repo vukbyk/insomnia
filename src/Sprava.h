@@ -21,6 +21,7 @@
 #include "ModelCallList.h"
 #include "DebugBtInterface.h"
 
+class Scene;
 
 #include <iostream>
 using namespace std;
@@ -56,23 +57,21 @@ class Sprava
 	unsigned int printStep=50;
 //	unsigned int avg=0;
 
+	Scene *scene;
+	Body *player;
+	Object3D *controls, *controls2;
+
 	Objects models;
 	Objects objects;
-	ObjectPtr controls, controls2;
+//	ObjectPtr controls, controls2;
 
-	shared_ptr<Body> player;
+//	shared_ptr<Body> player;
+	shared_ptr<AssimpModel> truck;
+	shared_ptr<AssimpModel> truckwheel;
 	shared_ptr<AssimpModel> vultureModel;
 	shared_ptr<AssimpModel> specialopsModel;
 	shared_ptr<AssimpModel> bansheeModel;
 	shared_ptr<AssimpModel> marsModel;
-
-//Physics
-	btDynamicsWorld* world;	                    //every physical object go to the world
-	btDispatcher* dispatcher;	                //what collision algorithm to use?
-	btCollisionConfiguration* collisionConfig;	//what collision algorithm to use?
-	btBroadphaseInterface* broadphase;	        //should Bullet examine every object, or just what close to each other
-	btConstraintSolver* solver;					//solve collisions, apply forces, impulses
-	DebugBtInterface *debugBtInterface;
 
 public:
 	Sprava();

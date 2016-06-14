@@ -12,32 +12,35 @@
 #include <bullet/LinearMath/btTransform.h>
 #include <vector>
 
+class Scene;
+
 #include <iostream>
 using namespace std;
-
-static unsigned long int id_counter=0;
 
 class Object3D
 {
 protected:
 	unsigned long int id;
 	float m[16];
-	bool updated=false;
 	Object3D *parent;
+//	int index;//index niza
+
+	virtual void setParent(Object3D* parent);
 public:
 	btTransform *t;
 	btTransform *tm;
 	std::vector <Object3D*> *objects;
-public:
+	bool updated;
+
 	Object3D();
     Object3D(btTransform argT);
     virtual void initGL();
     virtual void update();
+    virtual void updateNoParent();
     virtual void render();
 	virtual void setM();
 	virtual const float* getM() const { return m;}
 	virtual void add(Object3D *o);
-	virtual void setParent(Object3D* parent);
 	virtual void unparent();
 //	virtual const float* mt() { t.getOpenGLMatrix(m); return m; }
 	virtual ~Object3D();
