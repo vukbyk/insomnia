@@ -45,23 +45,26 @@ void Camera::update()
 
 			btVector3 forwardOffset=parent->tm->getBasis()* t->getOrigin();
 			tm->setOrigin(parent->tm->getOrigin() + forwardOffset);
-			tm->setRotation(parent->tm->getRotation() * t->getRotation());
+//			tm->setRotation(parent->tm->getRotation() * t->getRotation());
 
-//			btVector3 z=tm->getBasis()*btVector3(0,0,1);
-//			btVector3 x=tm->getBasis()*btVector3(1,0,0);
-//			btVector3 y=tm->getBasis()*btVector3(0,1,0);
-//
-//			btVector3 zc=z.angle(tm->);
-//			btVector3 x=parent->tm->getBasis()*btVector3(1,0,0);
-//			btVector3 y=parent->tm->getBasis()*btVector3(0,1,0);
-//			btVector3 forward=parent->tm->getBasis()*btVector3(0,0,1);
-//			btVector3 upLocal=parent->tm->getBasis() * btVector3(0,1,0);
-//			forward.angle()
-//			btVector3 planetUp=parent->tm->getOrigin().normalized();
-//			tm->setRotation(btQuaternion(forwardOffset,0));
-//			tm->setRotation(parent->tm->getRotation() * up * t->getRotation());
-//			float pitch=45* SIMD_RADS_PER_DEG;
-//			float roll=0;
+//			yaw locked camera
+
+//			tm->setOrigin(btVector3(0,516,50));
+
+			btVector3 up = tm->getOrigin().normalized();
+			btVector3 forward = ( tm->getOrigin() - parent->tm->getOrigin() + parent->tm->getBasis()*btVector3(0,2.5,15)).normalized();
+			btVector3 right = up.cross(forward).normalized();
+			up=forward.cross(right).normalized();
+			btMatrix3x3 lookAt(
+								right.x()  , right.y()  , right.z()
+								,
+								up.x()     , up.y()     , up.z()
+								,
+							    forward.x(), forward.y(), forward.z()
+							  );
+			btQuaternion rot;
+			lookAt.getRotation(rot);
+			tm->setRotation(rot.inverse());
 
 		}
 		setM();

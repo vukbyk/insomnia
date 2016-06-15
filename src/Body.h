@@ -27,6 +27,7 @@ public:
 
 	btRaycastVehicle* vehicle;
 	ModelCallList wheel[4];
+	btScalar r[4];
 	Body(string btModelFile);
 	Body(string btModelFile, AssimpModel &argAssimp);
 	Body(string btModelFile, unsigned int argIdCallList);

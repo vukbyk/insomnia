@@ -9,6 +9,7 @@
 
 Scene::Scene()
 {
+	camera=NULL;
 	//Physiscs
 
     collisionConfig=new btDefaultCollisionConfiguration();
@@ -17,15 +18,16 @@ Scene::Scene()
     solver=new btSequentialImpulseConstraintSolver();
     world=new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfig);
 
-    debugBtInterface=new DebugBtInterface(btIDebugDraw::DBG_DrawWireframe
-    									| btIDebugDraw::DBG_DrawAabb
-										| btIDebugDraw::DBG_EnableCCD
-										| btIDebugDraw::DBG_DrawConstraints
-										| btIDebugDraw::DBG_DrawFeaturesText
-										| btIDebugDraw::DBG_DrawText
-										| btIDebugDraw::DBG_DrawFrames
+    debugBtInterface=new DebugBtInterface(
+    									  btIDebugDraw::DBG_DrawWireframe |
+    									  btIDebugDraw::DBG_DrawAabb |
+										  btIDebugDraw::DBG_EnableCCD |
+										  btIDebugDraw::DBG_DrawConstraints |
+										  btIDebugDraw::DBG_DrawFeaturesText |
+										  btIDebugDraw::DBG_DrawText |
+										  btIDebugDraw::DBG_DrawFrames
 										);
-//    world->setDebugDrawer(debugBtInterface);
+    world->setDebugDrawer(debugBtInterface);
 
 //	btBulletWorldImporter* fileLoader = new btBulletWorldImporter();
 //	fileLoader->loadFile("models/mars/megamars1od4.bullet");
@@ -43,7 +45,7 @@ Scene::Scene()
 //    world->setGravity(btVector3(0, -10, 0));	//gravity on Earth
 //	btTransform tr;
 //    tr.setIdentity();
-//    tr.setOrigin(btVector3(0, 520 ,0));
+//    tr.setOrigin(btVector3(0, 515 ,0));
 //    btStaticPlaneShape* plane=new btStaticPlaneShape(btVector3(0,1,0),0);
 //    btMotionState* motion=new btDefaultMotionState(tr);
 //    btRigidBody::btRigidBodyConstructionInfo info(0.0,motion,plane);

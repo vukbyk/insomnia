@@ -25,7 +25,10 @@
 #include "Cube.h"
 
 #include <type_traits>//izbrisati ako ne treba unistanje konsta
+#include <time.h>
 
+
+float dt=0;
 
 Sprava::Sprava()
 {
@@ -44,7 +47,17 @@ void Sprava::mainLoop()
 	{
 		lastTime = currentTime;
 		currentTime = SDL_GetTicks();
-		dt = ((double)(currentTime - lastTime)) / 1000;
+//      SDL_GetPerformanceCounter();
+//		uint64 LastCounter = SDL_GetPerformanceCounter();
+//		We now just need to update the time at the end of our while(Running) loop, and output the difference.
+//		uint64 EndCounter = SDL_GetPerformanceCounter();
+//		uint64 CounterElapsed = EndCounter - LastCounter;
+//		real64 MSPerFrame = (((1000.0f * (real64)CounterElapsed) / (real64)PerCountFrequency));
+//		real64 FPS = (real64)PerfCountFrequency / (real64)CounterElapsed;
+//		printf("%.02f ms/f, %.02ff/s\n");
+//		LastCounter = EndCounter;
+
+		dt = ((double)(currentTime - lastTime)) / 1000.0;
 		eventHandler();
 		update();
 		render();
@@ -99,7 +112,7 @@ int Sprava::init()
 	models.push_back(specialopsModel);
 	bansheeModel=make_shared<AssimpModel>("models/banshee.obj","models/banshee.png");
 	models.push_back(bansheeModel);
-	marsModel=make_shared<AssimpModel>("models/mars/megamars1od4.obj","models/mars/marsmini.png");//"models/mars/mars16k.png");
+	marsModel=make_shared<AssimpModel>("models/mars/megamars1od4.obj","models/mars/mars16k.png");
 	models.push_back(marsModel);
 	for(auto &mdl: models)
 		mdl->initGL();
@@ -115,18 +128,12 @@ int Sprava::init()
 	player = new Body("models/vehicles/truck.bullet", *truck);
 //	player->t->setOrigin(btVector3(0, 526, 0));
 	player->body->getWorldTransform().setOrigin(btVector3(0, 516, 0));
+	btTransform trans;
+	trans.setIdentity();
+	trans.setOrigin(btVector3(0,5,0));
 	scene->addPhysical(player);
 	player->createVehicle(scene->world);
 	player->add(camera);
-
-//	scene->add(new ModelCallList(2));
-//	scene->objects->back()->tm=const_cast<btTransform*>(&player->vehicle->getWheelTransformWS(0));
-//	scene->add(new ModelCallList(2));
-//	scene->objects->back()->tm=const_cast<btTransform*>(&player->vehicle->getWheelTransformWS(1));
-//	scene->add(new ModelCallList(2));
-//	scene->objects->back()->tm=const_cast<btTransform*>(&player->vehicle->getWheelTransformWS(2));
-//	scene->add(new ModelCallList(2));
-//	scene->objects->back()->tm=const_cast<btTransform*>(&player->vehicle->getWheelTransformWS(3));
 
 	scene->add(new ModelCallList(*bansheeModel));
 
@@ -136,21 +143,20 @@ int Sprava::init()
 	controls2->add(new ModelCallList(*vultureModel));
 
 
-
 	Body *mars;
 	mars = new Body("models/mars/megamars1od4.bullet", *marsModel);
+	mars->body->setCollisionFlags(mars->body->getCollisionFlags()| btRigidBody::CF_DISABLE_VISUALIZE_OBJECT  );
 	scene->addPhysical(mars);
 
 //	mars->t->setOrigin(btVector3(0, -526, 0));
 //	mars->body->getWorldTransform().setOrigin(btVector3(0, -526, 0));
 //	scene->objects->back()->t->setRotation(btQuaternion(0,-90,0));
 
-	int x=0*10, y=0*500;
+	int x=100, y=500;
 	for(int i = 0; i < x; i++)
 		for(int j = 0; j < y; j++)
 		{
-			objects.push_back(make_shared</*AssimpModel*/ModelCallList>(rand()%3+1));
-			objects.back()->t->setOrigin(objects.back()->t->getOrigin()+btVector3(i*3-x, 0, j*3-y));
+			scene->add(new ModelCallList(*specialopsModel));
 //			controls->add(objects.rbegin()[0].get());
 		}
 
@@ -223,8 +229,11 @@ int Sprava::initGL()
 
 void Sprava::update()
 {
-	scene->world->stepSimulation(dt, 12);
-    scene->update();
+	if(dt>0)
+	{
+		scene->world->stepSimulation(dt, 12);
+		scene->update();
+	}
 //    for(auto &obj: objects)
 //      obj->update();
 }
@@ -312,16 +321,16 @@ void Sprava::controlKeySetup()
 //			controls->t->setRotation(controls->t->getRotation()*btQuaternion( 1*SIMD_RADS_PER_DEG, 0, 0));
 	}
 	if ( keysHeld[SDL_SCANCODE_W] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0,-25.f)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0,-10.f)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, 0.1));
 	if ( keysHeld[SDL_SCANCODE_S] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0, 25.f)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(0, 0, 10.f)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 0, -0.1));
 	if ( keysHeld[SDL_SCANCODE_A] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(-25.f, 0, 0)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3(-10.f, 0, 0)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3( 0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_D] )
-		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3( 25.f, 0, 0)*dt));
+		controls->t->setOrigin(controls->t->getOrigin()+quatRotate(controls->t->getRotation(), btVector3( 10.f, 0, 0)*dt));
 //			controls->t->setOrigin(controls->t->getOrigin()+btVector3(-0.1, 0, 0));
 	if ( keysHeld[SDL_SCANCODE_E] )
 		controls->t->setOrigin(controls->t->getOrigin()+btVector3(0, 25.f, 0)*dt);
@@ -356,8 +365,10 @@ void Sprava::controlKeySetup()
 
 	if ( keysHeld[SDL_SCANCODE_KP_5] )
 	{
-			player->vehicle->applyEngineForce(2000,0), player->vehicle->applyEngineForce(2000,1);
-			player->vehicle->applyEngineForce(2000,2), player->vehicle->applyEngineForce(2000,3);
+			player->vehicle->applyEngineForce(2500,0);
+			player->vehicle->applyEngineForce(2500,1);
+			player->vehicle->applyEngineForce(2500,2);
+			player->vehicle->applyEngineForce(2500,3);
 			player->vehicle->setBrake(0,0);
 			player->vehicle->setBrake(0,1);
 			player->vehicle->setBrake(0,2);
@@ -365,12 +376,14 @@ void Sprava::controlKeySetup()
 	}
 	if ( keysHeld[SDL_SCANCODE_KP_2] )
 	{
-			player->vehicle->applyEngineForce(0,0), player->vehicle->applyEngineForce(0,1);
-			player->vehicle->applyEngineForce(0,2), player->vehicle->applyEngineForce(0,3);
-			player->vehicle->setBrake(130,0);
-			player->vehicle->setBrake(130,1);
-			player->vehicle->setBrake(130,2);
-			player->vehicle->setBrake(130,3);
+			player->vehicle->applyEngineForce(-2500,0);
+			player->vehicle->applyEngineForce(-2500,1);
+			player->vehicle->applyEngineForce(-2500,2);
+			player->vehicle->applyEngineForce(-2500,3);
+			player->vehicle->setBrake(0,0);
+			player->vehicle->setBrake(0,1);
+			player->vehicle->setBrake(0,2);
+			player->vehicle->setBrake(0,3);
 	}
 	if ( keysHeld[SDL_SCANCODE_KP_1] && player->vehicle->getSteeringValue(3)<SIMD_RADS_PER_DEG*45)
 		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(2)+SIMD_RADS_PER_DEG*60*dt,2),
@@ -379,9 +392,30 @@ void Sprava::controlKeySetup()
 		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(2)-SIMD_RADS_PER_DEG*60*dt,2),
 		player->vehicle->setSteeringValue(player->vehicle->getSteeringValue(3)-SIMD_RADS_PER_DEG*60*dt,3);
 	if ( keysHeld[SDL_SCANCODE_KP_4] )
-		player->vehicle->setBrake(130,0),player->vehicle->setBrake(130,1),player->vehicle->setBrake(130,2),player->vehicle->setBrake(130,3);
-	if ( keysHeld[SDL_SCANCODE_KP_0]||keysHeld[SDL_SCANCODE_KP_5] )
-			player->vehicle->setBrake(0,0),player->vehicle->setBrake(0,1),player->vehicle->setBrake(0,2),player->vehicle->setBrake(0,3);
+		player->vehicle->setBrake(130,0),player->vehicle->setBrake(130,1),
+		player->vehicle->setBrake(130,2),player->vehicle->setBrake(130,3);
+	if ( keysHeld[SDL_SCANCODE_KP_0] )
+	{
+		player->vehicle->setBrake(1300,0);
+		player->vehicle->setBrake(1300,1);
+		player->vehicle->setBrake(1300,2);
+		player->vehicle->setBrake(1300,3);
+		player->vehicle->applyEngineForce(0,0);
+		player->vehicle->applyEngineForce(0,1);
+		player->vehicle->applyEngineForce(0,2);
+		player->vehicle->applyEngineForce(0,3);
+	}
+	if ( keysHeld[SDL_SCANCODE_KP_PERIOD] )
+	{
+		player->vehicle->setBrake(0,0);
+		player->vehicle->setBrake(0,1);
+		player->vehicle->setBrake(0,2);
+		player->vehicle->setBrake(0,3);
+		player->vehicle->applyEngineForce(0,0);
+		player->vehicle->applyEngineForce(0,1);
+		player->vehicle->applyEngineForce(0,2);
+		player->vehicle->applyEngineForce(0,3);
+	}
 
 	if (keysHeld[SDL_SCANCODE_SPACE])
 		player->body->applyCentralForce(player->body->getCenterOfMassPosition().normalized()*100000);
@@ -392,12 +426,12 @@ void Sprava::controlKeySetup()
 
 void Sprava::printFPS()
 {
-	if(printStep++==0)
+	if(countStep++==0)
 		begin=SDL_GetTicks();
-	else if(printStep==printStep)
+	else if(countStep==printStep)
 	{
-		cout<<"Ticks: "<< 1000.*printStep/(SDL_GetTicks()-begin)<<endl;
-		printStep=0;
+		cout<<"FPS: "<< 1000.*printStep/(SDL_GetTicks()-begin)<<endl;
+		countStep=0;
 	}
 }
 

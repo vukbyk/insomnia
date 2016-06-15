@@ -51,7 +51,7 @@ class Sprava
 	bool fps=false;
 	unsigned int lastTime;
 	unsigned int currentTime;
-	float dt;
+//	float dt;
 	unsigned int begin=0;
 	unsigned int countStep=0;
 	unsigned int printStep=50;
