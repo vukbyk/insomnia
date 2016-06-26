@@ -286,8 +286,6 @@ void Sprava::render()
 //    glMaterialfv(GL_FRONT, GL_SHININESS, no_mat);
 //    glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
     scene->camera->render();
-    glViewport(0, 0, screenWidth/2, screenHeight/2);
-    scene->camera->render();
 //    glPushMatrix();
 //
 //    float pos[]= {0, 3, 0, 1};
