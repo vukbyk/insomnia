@@ -20,6 +20,7 @@
 #include "Body.h"
 #include "ModelCallList.h"
 #include "DebugBtInterface.h"
+#include "Player.h"
 
 class Scene;
 
@@ -40,6 +41,7 @@ class Sprava
 	//Event handler
 	SDL_Event event;
 	bool keysHeld[323] = {false};
+	bool keysPressed[323] = {false};
 
 	//The window we'll be rendering to
 	SDL_Window* glWindow = NULL;
@@ -58,7 +60,10 @@ class Sprava
 //	unsigned int avg=0;
 
 	Scene *scene;
-	Body *player;
+	Player *player;
+	Body *truck;
+	Body *car;
+	float maxTurn=45;
 	Object3D *controls, *controls2;
 
 	Objects models;
@@ -66,8 +71,9 @@ class Sprava
 //	ObjectPtr controls, controls2;
 
 //	shared_ptr<Body> player;
-	shared_ptr<AssimpModel> truck;
-	shared_ptr<AssimpModel> truckwheel;
+	shared_ptr<AssimpModel> truckModel;
+	shared_ptr<AssimpModel> carModel;
+	shared_ptr<AssimpModel> truckWheelModel;
 	shared_ptr<AssimpModel> vultureModel;
 	shared_ptr<AssimpModel> specialopsModel;
 	shared_ptr<AssimpModel> bansheeModel;

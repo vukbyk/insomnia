@@ -6,6 +6,7 @@
  */
 
 #include "Body.h"
+#include "Player.h"
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletWorldImporter/btBulletWorldImporter.h>
 #include <bullet/BulletDynamics/Vehicle/btRaycastVehicle.h>
@@ -75,7 +76,7 @@ void Body::init(string btModelFile)
 }
 
 
-void Body::createVehicle(btDynamicsWorld* world)
+void Body::createVehicle(btDynamicsWorld* world, btVector3 wheelPosition)
 {
 	btVehicleRaycaster* vehicleRayCaster = new btDefaultVehicleRaycaster(world);
 	btRaycastVehicle::btVehicleTuning tuning;
@@ -83,8 +84,8 @@ void Body::createVehicle(btDynamicsWorld* world)
 	vehicle->setCoordinateSystem(0,1,2);
 
 	world->addVehicle(vehicle);
-	btVector3 v( 1.3, 1.2, 2.0);
-	addWheels(tuning,  v);
+//	btVector3 v( 1.3, 1.2, 2.0);
+	addWheels(tuning,  wheelPosition);
 }
 
 void Body::update()
@@ -97,9 +98,12 @@ void Body::update()
 		body->setGravity(g*-10);
 		(*tm * *t).getOpenGLMatrix(m);
 		updated=true;
+
 		if(objects)
 			for(auto &obj: *objects)
 				obj->update();
+		if(player)
+			player->update();
 	//
 		if(vehicle!=NULL)
 			for(int i=0; i<4; i++)
@@ -194,7 +198,7 @@ void Body::addWheels( btRaycastVehicle::btVehicleTuning &argTuning, btVector3 &h
 	for (int i = 0; i < vehicle->getNumWheels(); i++)
 	{
 		btWheelInfo& wheel = vehicle->getWheelInfo(i);
-		wheel.m_suspensionStiffness = 15;//​stiffness suspension. 10.0 ­ Offroad buggy, 	50.0 ­ Sports car, 200.0 ­ F1 Car
+		wheel.m_suspensionStiffness = 35;//​stiffness suspension. 10.0 ­ Offroad buggy, 	50.0 ­ Sports car, 200.0 ­ F1 Car
 
 		wheel.m_wheelsDampingCompression = btScalar(0.3) * 2 * btSqrt(wheel.m_suspensionStiffness);//btScalar(0.8);
 		wheel.m_wheelsDampingRelaxation = btScalar(0.5) * 2 * btSqrt(wheel.m_suspensionStiffness);//1;
@@ -206,7 +210,7 @@ void Body::addWheels( btRaycastVehicle::btVehicleTuning &argTuning, btVector3 &h
 	for(int i=0; i<4; i++)
 	{
 		wheel[i]=ModelCallList(2);
-		parent->add(&wheel[i]);
+		parent->addChild(&wheel[i]);
 //		wheel[i].t->setOrigin(btVector3(2,2,2));
 //		wheel[i].tm=const_cast<btTransform*>(&vehicle->getWheelTransformWS(i));
 	}

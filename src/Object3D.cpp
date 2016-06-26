@@ -59,6 +59,7 @@ void Object3D::update()
 	if(!updated)
 	{
 		*tm=*t;
+		updated=true;
 		if(parent)
 		{
 			if(!parent->updated)
@@ -66,8 +67,6 @@ void Object3D::update()
 			*tm=*parent->tm * *tm;
 		}
 		setM();
-		updated=true;
-
 		if(objects)
 			for(auto &obj: *objects)
 				obj->update();
@@ -104,11 +103,10 @@ void Object3D::render()
 
 void Object3D::setM()
 {
-//	cout<<"set: "<<id<<endl;
 	tm->getOpenGLMatrix(m);
 }
 
-void Object3D::add(Object3D *o)
+void Object3D::addChild(Object3D *o)
 {
 	if(o!=this)
 	{
@@ -124,6 +122,28 @@ void Object3D::add(Object3D *o)
 			o->setParent(this);
 		}
 	}
+}
+
+void Object3D::orphan(Object3D *o)
+{
+	o->parent=NULL;
+//	objects->pop_back();
+	for ( auto it = objects->begin(); it != objects->end(); it++)
+	{
+	   if( (*it) == o )
+	   {
+	      objects->erase(it);
+	      break;
+	   }
+	}
+}
+
+void Object3D::removeAllChildren()
+{
+//	for(auto &obj: *objects)
+	objects->back()->parent=NULL;
+	delete objects;
+//	objects=NULL;
 }
 
 void Object3D::setParent(Object3D* parentArg)

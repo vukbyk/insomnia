@@ -22,11 +22,11 @@ class Object3D
 protected:
 	unsigned long int id;
 	float m[16];
-	Object3D *parent;
 //	int index;//index niza
 
 	virtual void setParent(Object3D* parent);
 public:
+	Object3D *parent;
 	btTransform *t;
 	btTransform *tm;
 	std::vector <Object3D*> *objects;
@@ -40,7 +40,9 @@ public:
     virtual void render();
 	virtual void setM();
 	virtual const float* getM() const { return m;}
-	virtual void add(Object3D *o);
+	virtual void addChild(Object3D *o);
+	virtual void orphan(Object3D *o);
+	virtual void removeAllChildren();
 	virtual void unparent();
 //	virtual const float* mt() { t.getOpenGLMatrix(m); return m; }
 	virtual ~Object3D();

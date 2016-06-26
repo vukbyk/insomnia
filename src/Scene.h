@@ -13,6 +13,7 @@
 #include "Object3D.h"
 #include "Body.h"
 #include "ModelCallList.h"
+#include "Player.h"
 
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletWorldImporter/btBulletWorldImporter.h>
@@ -33,6 +34,8 @@ public:
 
 public:
 	Object3D *camera;
+	Object3D *sun=NULL;
+	Object3D *player=NULL;
 	Scene();
 	virtual void update();
 	virtual void render();

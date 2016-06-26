@@ -18,12 +18,15 @@ class btRaycastVehicle;
 class btDynamicsWorld;
 class btVector3;
 class btRaycastVehicle;
+class Player;
 //class btVehicleTuning;
 
 class Body: public ModelCallList
 {
 public:
 	btRigidBody *body;
+
+	Player *player=NULL;
 
 	btRaycastVehicle* vehicle;
 	ModelCallList wheel[4];
@@ -37,7 +40,7 @@ public:
 	virtual void init(string btModelFile);
 	virtual void update();
 	virtual void updateNoParent();
-	void createVehicle(btDynamicsWorld* world);
+	void createVehicle(btDynamicsWorld* world, btVector3 wheelPosition);
 	void addWheels( btRaycastVehicle::btVehicleTuning &argTuning, btVector3 &helpBox);
 
 	virtual ~Body();
