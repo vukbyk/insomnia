@@ -10,6 +10,14 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+#include <drawtext.h>
+//#include <oglft/OGLFT.h>
+//#include <FTGL/ftgl.h>
+//#include <FTGL/FTGLBitmapFont.h>
+//#include <gltt/FTFace.h>
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletWorldImporter/btBulletWorldImporter.h>
 
@@ -31,9 +39,12 @@ using namespace std;
 typedef std::shared_ptr <Object3D> ObjectPtr;
 //typedef std::make_shared() <Object3D> ObjectPtr;
 typedef std::vector <ObjectPtr> Objects;
+//struct dtx_font;
 
 class Sprava
 {
+
+	dtx_font *font;
 	//Screen dimension constants
 	int screenWidth  = 1024;
 	int screenHeight = 760;
@@ -64,6 +75,7 @@ class Sprava
 	Body *truck;
 	Body *car;
 	float maxTurn=45;
+	bool rearView=false;
 	Object3D *controls, *controls2;
 
 	Objects models;

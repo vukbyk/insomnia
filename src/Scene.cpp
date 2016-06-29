@@ -29,7 +29,7 @@ Scene::Scene()
 										  btIDebugDraw::DBG_DrawText |
 										  btIDebugDraw::DBG_DrawFrames
 										);
-    world->setDebugDrawer(debugBtInterface);
+//    world->setDebugDrawer(debugBtInterface);
 
 //	btBulletWorldImporter* fileLoader = new btBulletWorldImporter();
 //	fileLoader->loadFile("models/mars/megamars1od4.bullet");

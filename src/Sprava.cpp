@@ -9,11 +9,14 @@
 
 #include <math.h>
 #include <GL/glu.h>
-//#include <GL/glut.h>
+#include <GL/glut.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+//#include <freetype2/freetype.h>
+//#include <freetype2/ft2build.h>
+//#include <FTGL/ftgl.h>
 
 #include "Scene.h"
 #include "Camera.h"
@@ -28,7 +31,7 @@
 
 #include <type_traits>//izbrisati ako ne treba unistanje konsta
 #include <time.h>
-
+#include <drawtext.h>
 
 float dt=0;
 
@@ -49,15 +52,6 @@ void Sprava::mainLoop()
 	{
 		lastTime = currentTime;
 		currentTime = SDL_GetTicks();
-//      SDL_GetPerformanceCounter();
-//		uint64 LastCounter = SDL_GetPerformanceCounter();
-//		We now just need to update the time at the end of our while(Running) loop, and output the difference.
-//		uint64 EndCounter = SDL_GetPerformanceCounter();
-//		uint64 CounterElapsed = EndCounter - LastCounter;
-//		real64 MSPerFrame = (((1000.0f * (real64)CounterElapsed) / (real64)PerCountFrequency));
-//		real64 FPS = (real64)PerfCountFrequency / (real64)CounterElapsed;
-//		printf("%.02f ms/f, %.02ff/s\n");
-//		LastCounter = EndCounter;
 
 		dt = ((double)(currentTime - lastTime)) / 1000.0;
 		eventHandler();
@@ -73,6 +67,18 @@ void Sprava::mainLoop()
 
 int Sprava::init()
 {
+	/* XXX dtx_open_font opens a font file and returns a pointer to dtx_font */
+    if(!(font = dtx_open_font("models/font.ttf", 16)))
+    {
+    	fprintf(stderr, "failed to open font\n");
+    	return 1;
+    }
+    /* XXX select the font and size to render with by calling dtx_use_font
+    * if you want to use a different font size, you must first call:
+    * dtx_prepare(font, size) once.
+    */
+    dtx_use_font(font, 16);
+
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
     {
         printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
@@ -174,8 +180,8 @@ int Sprava::init()
 	mars->body->setCollisionFlags(mars->body->getCollisionFlags()| btRigidBody::CF_DISABLE_VISUALIZE_OBJECT  );
 	scene->addPhysical(mars);
 
-	scene->addChild(new ModelCallList(*bansheeModel));
-	scene->addChild(new ModelCallList(*specialopsModel));
+//	scene->addChild(new ModelCallList(*bansheeModel));
+//	scene->addChild(new ModelCallList(*specialopsModel));
 //	scene->objects->back()->t->setOrigin(btVector3(2, 0, 0));
 ////	controls2=scene->objects->back();
 ////	controls2->add(light);
@@ -204,6 +210,7 @@ int Sprava::init()
 
 int Sprava::initGL()
 {
+
     GLenum error = GL_NO_ERROR;
 
     scene->camera->initGL();
@@ -270,60 +277,59 @@ void Sprava::render()
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-//    GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
-//    GLfloat mat_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
-//    GLfloat mat_ambient_color[] = { 0.8, 0.8, 0.2, 1.0 };
-//    GLfloat mat_diffuse[] = { 0.1, 0.5, 0.8, 1.0 };
-//    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-//    GLfloat no_shininess[] = { 0.0 };
-//    GLfloat low_shininess[] = { 5.0 };
-//    GLfloat high_shininess[] = { 100.0 };
-//    GLfloat mat_emission[] = {0.6, 0.2, 0.2, 0.0};
-//
-//    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-//    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-//    glMaterialfv(GL_FRONT, GL_SPECULAR, no_mat);
-//    glMaterialfv(GL_FRONT, GL_SHININESS, no_mat);
-//    glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
-    glViewport(0, 0, screenWidth/2, screenHeight/2);
+
+    glViewport(0, 0, screenWidth, screenHeight);
     scene->camera->render();
 
-    glClear( GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, screenWidth/2, screenHeight/2);
-    scene->camera->render();
-//    glPushMatrix();
-//
-//    float pos[]= {0, 3, 0, 1};
-//    glColor4f(0,1,1,1);
-//    glLightfv(GL_LIGHT0, GL_POSITION, pos);
-//
-//    glEnable(GL_LIGHT0);
-//    btQuaternion dq(90*SIMD_DEGS_PER_RAD, 0*SIMD_DEGS_PER_RAD, 0*SIMD_DEGS_PER_RAD);
-//
-//    float dif[]= {.5,0,0,0};
-//    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dif);
-//
-////	glDisable(GL_LIGHT0);
-////	glEnable(GL_LIGHT1);
-//
-//	// Light default parameters
-//	const GLfloat light_ambient[4]  = {1.0, 1.0, 1.0, 1.0};
-//	const GLfloat light_specular[4] = {1.0, 1.0, 1.0, 1.0};
-//	const GLfloat light_diffuse[4]  = {1.0, 1.0, 1.0, 1.0};
-////
-//	glLightf( GL_LIGHT0, GL_SPOT_EXPONENT, 3.0);
-//	glLightf( GL_LIGHT0, GL_SPOT_CUTOFF,   60.0);
-////	glLightf( GL_LIGHT0, GL_CONSTANT_ATTENUATION,  0.1f);
-////	glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1f/*0.3f*/);
-////	glLightf( GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.3f);
-////	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
-////	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-////	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
-//    glPopMatrix();
+    scene->render();
+//    std::cout<<scene->camera->t->getOrigin().x()<< " " << scene->camera->t->getOrigin().y()<< " " << scene->camera->t->getOrigin().z()<< std::endl;
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    glTranslatef(-screenWidth/6-24, screenHeight/6+24, -400);
+	glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glColor3f(1, 1, 1);
+    //    glOrtho(-screenWidth/2, screenWidth/2, -screenHeight/2, screenHeight/2, -1, 1);
+    dtx_string("RADI\n");
+
+    glEnable(GL_LIGHTING);
+    glPopMatrix();
+    if(rearView && scene->camera->parent)
+    {
+		glViewport(screenWidth/3, screenHeight*8/10, screenWidth/3, screenHeight*2/10);
+		glClearColor( 0.01f, 0.03f, 0.1f, 1.f );
+		glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		Object3D *parent=scene->camera->parent;
+		btTransform cam=*scene->camera->t;
+		btTransform retrovisor=*parent->parent->tm;
+		btVector3 forward=retrovisor.getBasis()*btVector3(0,0,1);
+		btVector3 top=retrovisor.getBasis()*btVector3(0,1,0);
+		btVector3 position=retrovisor.getOrigin();
+		btQuaternion rot;
+		rot.setRotation(top,SIMD_RADS_PER_DEG*180);
+		retrovisor.setRotation(rot.normalize()*retrovisor.getRotation().normalize());
+		position+=forward*3.8+top*2.3;
+		retrovisor.setOrigin(position);
+		scene->camera->parent=NULL;
+		*scene->camera->t=retrovisor;
+		glMatrixMode(GL_PROJECTION);
+		glScalef (-1.0, .5, 1.0);
+		glMatrixMode(GL_MODELVIEW);
+		scene->camera->update();
+		scene->camera->render();
+		scene->render();
+		scene->camera->parent=parent;
+		*scene->camera->t=cam;
+		glMatrixMode(GL_PROJECTION);
+		glScalef (-1.0, 2.0, 1.0);
+	}
+
+	glRasterPos3f(10, 10, 10);
+
 
 //    for(auto &obj: objects)
 //    	obj->render();
-    scene->render();
+//    scene->render();
 
 }
 
@@ -508,24 +514,30 @@ void Sprava::controlKeySetup()
 			player->light->on=true;
 	}
 
-	if ( keysPressed[SDL_SCANCODE_KP_9])
-	{
-		keysPressed[SDL_SCANCODE_KP_9]=false;
-		truck->orphan(player);
-		car->addChild(player);
-		player->current=car;
-		maxTurn = 25;
-	}
-
 	if ( keysPressed[SDL_SCANCODE_KP_8])
 	{
 		keysPressed[SDL_SCANCODE_KP_8]=false;
-		car->orphan(player);
-		truck->addChild(player);
-		player->current=truck;
-		maxTurn = 45;
+		(rearView==false)? rearView = true: rearView = false;
 	}
+	if ( keysPressed[SDL_SCANCODE_KP_9])
+	{
+		keysPressed[SDL_SCANCODE_KP_9]=false;
+		if(player->current==truck)
+		{
 
+			truck->orphan(player);
+			car->addChild(player);
+			player->current=car;
+			maxTurn = 25;
+		}
+		else
+		{
+			car->orphan(player);
+			truck->addChild(player);
+			player->current=truck;
+			maxTurn = 45;
+		}
+	}
 }
 
 void Sprava::printFPS()
