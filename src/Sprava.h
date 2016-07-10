@@ -43,7 +43,13 @@ typedef std::vector <ObjectPtr> Objects;
 
 class Sprava
 {
-
+	float mouseX=0, mouseY=0;
+	bool mouseButtonDown=false;
+    char s[100];
+    int raceTime;
+	bool raceCompleted = false;
+	unsigned int currentChk=0;
+	vector <btQuaternion> chk;
 	dtx_font *font;
 	//Screen dimension constants
 	int screenWidth  = 1024;
@@ -77,6 +83,7 @@ class Sprava
 	float maxTurn=45;
 	bool rearView=false;
 	Object3D *controls, *controls2;
+	ModelCallList *marker;
 
 	Objects models;
 	Objects objects;
@@ -90,6 +97,7 @@ class Sprava
 	shared_ptr<AssimpModel> specialopsModel;
 	shared_ptr<AssimpModel> bansheeModel;
 	shared_ptr<AssimpModel> marsModel;
+	shared_ptr<AssimpModel> satelitModel;
 
 public:
 	Sprava();

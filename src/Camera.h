@@ -17,6 +17,7 @@ class Camera: public Object3D
 	double near;
 	double far;
 public:
+	bool cabinView = true;
 	Camera();
 	Camera(btTransform argT);
 	virtual void initGL();

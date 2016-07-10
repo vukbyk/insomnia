@@ -41,30 +41,38 @@ void Camera::update()
 		{
 			if(!parent->updated)
 				parent->update();
-			btVector3 forwardOffset=parent->tm->getBasis()* t->getOrigin();
-			tm->setOrigin(parent->tm->getOrigin() + forwardOffset);
-			tm->setRotation(parent->tm->getRotation() * t->getRotation());
-
+//			btVector3 forwardOffset=parent->tm->getBasis()* t->getOrigin();
+//			tm->setOrigin(parent->tm->getOrigin() + forwardOffset);
+//			tm->setRotation(parent->tm->getRotation() * t->getRotation());
 //			yaw locked camera
+			if(cabinView)
+			{
+				btVector3 forwardOffset=parent->tm->getBasis()* t->getOrigin();
+				tm->setOrigin(parent->tm->getOrigin() + forwardOffset);
+				btVector3 up = tm->getOrigin().normalized();
+				btVector3 forward = ( tm->getOrigin() - parent->tm->getOrigin() + parent->tm->getBasis()*btVector3(0,0,50)).normalized();
+				btVector3 right = up.cross(forward).normalized();
+				up=forward.cross(right).normalized();
+				btMatrix3x3 lookAt(
+									right.x()  , right.y()  , right.z()
+									,
+									up.x()     , up.y()     , up.z()
+									,
+									forward.x(), forward.y(), forward.z()
+								  );
+				btQuaternion rot;
+				lookAt.getRotation(rot);
+				tm->setRotation(rot.inverse());
 
-//			tm->setOrigin(btVector3(0,516,50));
-
-//			btVector3 up = tm->getOrigin().normalized();
-//			btVector3 forward = ( tm->getOrigin() - parent->tm->getOrigin() + parent->tm->getBasis()*btVector3(0,0,50)).normalized();
-//			btVector3 right = up.cross(forward).normalized();
-//			up=forward.cross(right).normalized();
-//			btMatrix3x3 lookAt(
-//								right.x()  , right.y()  , right.z()
-//								,
-//								up.x()     , up.y()     , up.z()
-//								,
-//							    forward.x(), forward.y(), forward.z()
-//							  );
-//			btQuaternion rot;
-//			lookAt.getRotation(rot);
-//			tm->setRotation(rot.inverse());
-
+			}
+			else
+			{
+				btVector3 forwardOffset=parent->tm->getBasis()* t->getOrigin();
+				tm->setOrigin(parent->tm->getOrigin() + forwardOffset);
+				tm->setRotation(parent->tm->getRotation() * t->getRotation());
+			}
 		}
+
 		setM();
 		updated=true;
 	}

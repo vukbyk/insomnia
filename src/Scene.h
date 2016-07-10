@@ -33,7 +33,7 @@ public:
 	DebugBtInterface *debugBtInterface;
 
 public:
-	Object3D *camera;
+	Camera *camera;
 	Object3D *sun=NULL;
 	Object3D *player=NULL;
 	Scene();
